@@ -31,12 +31,12 @@ export default function CustomSettings({
       </div>
 
       {/* CRF Slider */}
-      <div>
-        <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className="font-semibold text-slate-300">
-            Nilai CRF (Constant Rate Factor): <strong className="text-rose-400 font-mono font-bold text-sm ml-1">{customSettings.crf}</strong>
+      <div className="min-w-0 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs mb-1.5 min-w-0">
+          <span className="font-semibold text-slate-300 truncate">
+            Nilai CRF: <strong className="text-rose-400 font-mono font-bold text-sm ml-1">{customSettings.crf}</strong>
           </span>
-          <span className="text-[11px] font-medium text-slate-400">
+          <span className="text-[11px] font-medium text-slate-400 truncate">
             {getCrfQualityLabel(customSettings.crf)}
           </span>
         </div>
@@ -49,10 +49,10 @@ export default function CustomSettings({
           onChange={(e) => handleChange('crf', parseInt(e.target.value, 10))}
           className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer accent-rose-500"
         />
-        <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-          <span>14 (Lossless)</span>
-          <span className="text-emerald-400 font-bold">20-23 (Ideal)</span>
-          <span>32 (Kecil)</span>
+        <div className="flex justify-between text-[10px] text-slate-500 mt-1 min-w-0">
+          <span className="truncate">14 (Lossless)</span>
+          <span className="text-emerald-400 font-bold truncate">20-23 (Ideal)</span>
+          <span className="truncate">32 (Kecil)</span>
         </div>
       </div>
 

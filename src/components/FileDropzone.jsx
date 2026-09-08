@@ -132,7 +132,7 @@ export default function FileDropzone({ isDark, selectedFile, fileMetadata, onFil
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative w-full rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 group ${
+          className={`relative w-full rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 group overflow-hidden ${
             isDragging
               ? 'border-rose-500 bg-rose-500/10 scale-[0.99] ring-4 ring-rose-500/20'
               : isDark
@@ -182,40 +182,43 @@ export default function FileDropzone({ isDark, selectedFile, fileMetadata, onFil
         </div>
       ) : (
         /* Selected File Card */
-        <div className={`w-full rounded-3xl border p-4 sm:p-5 transition-all ${
+        <div className={`w-full rounded-3xl border p-4 sm:p-5 transition-all overflow-hidden ${
           isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
         }`}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto flex-1 overflow-hidden">
               <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
                 {fileMetadata?.type === 'video' ? <FileVideo className="w-6 h-6" /> : <ImageIcon className="w-6 h-6" />}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-sm sm:text-base truncate">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 min-w-0 w-full">
+                  <h4 
+                    className="font-bold text-sm sm:text-base truncate min-w-0 flex-1"
+                    title={selectedFile.name}
+                  >
                     {selectedFile.name}
                   </h4>
                   <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
+                    <CheckCircle2 className="w-3 h-3 shrink-0" />
                     <span>Terpilih</span>
                   </span>
                 </div>
 
                 {/* Metadata Chips */}
-                <div className="flex items-center gap-2 flex-wrap mt-1 text-xs text-slate-400">
-                  <span className="font-semibold text-rose-500">
+                <div className="flex items-center gap-2 flex-wrap mt-1 text-xs text-slate-400 min-w-0">
+                  <span className="font-semibold text-rose-500 shrink-0">
                     {formatBytes(selectedFile.size)}
                   </span>
                   {fileMetadata?.type === 'video' && fileMetadata.duration > 0 && (
                     <>
-                      <span>•</span>
-                      <span>Durasi: <strong className={isDark ? 'text-white' : 'text-slate-800'}>{formatDuration(fileMetadata.duration)}</strong></span>
+                      <span className="shrink-0">•</span>
+                      <span className="truncate">Durasi: <strong className={isDark ? 'text-white' : 'text-slate-800'}>{formatDuration(fileMetadata.duration)}</strong></span>
                     </>
                   )}
                   {fileMetadata?.width > 0 && fileMetadata?.height > 0 && (
                     <>
-                      <span>•</span>
-                      <span>Resolusi: <strong className={isDark ? 'text-white' : 'text-slate-800'}>{fileMetadata.width} × {fileMetadata.height}</strong></span>
+                      <span className="shrink-0">•</span>
+                      <span className="truncate">Resolusi: <strong className={isDark ? 'text-white' : 'text-slate-800'}>{fileMetadata.width} × {fileMetadata.height}</strong></span>
                     </>
                   )}
                 </div>
@@ -226,13 +229,13 @@ export default function FileDropzone({ isDark, selectedFile, fileMetadata, onFil
             <button
               type="button"
               onClick={onClearFile}
-              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 active:scale-95 ${
+              className={`w-full sm:w-auto justify-center px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 active:scale-95 ${
                 isDark 
                   ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
               }`}
             >
-              <X className="w-3.5 h-3.5 text-rose-500" />
+              <X className="w-3.5 h-3.5 text-rose-500 shrink-0" />
               <span>Ganti File</span>
             </button>
           </div>

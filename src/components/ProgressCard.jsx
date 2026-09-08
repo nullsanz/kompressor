@@ -62,12 +62,12 @@ export default function ProgressCard({
       </div>
 
       {/* Status & Elapsed Time */}
-      <div className="space-y-1.5">
-        <h3 className="text-base sm:text-lg font-bold flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 text-rose-500 animate-spin" />
-          <span>{statusText || 'Sedang Memproses Video di Browser...'}</span>
+      <div className="space-y-1.5 min-w-0 w-full">
+        <h3 className="text-base sm:text-lg font-bold flex items-center justify-center gap-2 min-w-0 px-2">
+          <Loader2 className="w-4 h-4 text-rose-500 animate-spin shrink-0" />
+          <span className="truncate max-w-full">{statusText || 'Sedang Memproses Video di Browser...'}</span>
         </h3>
-        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Waktu berjalan: <strong className="font-mono text-rose-400">{formatElapsed(elapsedSeconds)}</strong> • Dikerjakan langsung di perangkat Anda
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function ProgressCard({
       </div>
 
       {/* Collapsible FFmpeg Log Console */}
-      <div className="pt-2 max-w-xl mx-auto">
+      <div className="pt-2 max-w-xl mx-auto w-full min-w-0">
         <button
           type="button"
           onClick={() => setShowLogs(!showLogs)}
@@ -93,20 +93,20 @@ export default function ProgressCard({
             isDark ? 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white' : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
           }`}
         >
-          <div className="flex items-center gap-2">
-            <Terminal className="w-3.5 h-3.5 text-rose-500" />
-            <span>Terminal Log FFmpeg Real-time ({logs.length})</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Terminal className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <span className="truncate">Terminal Log FFmpeg Real-time ({logs.length})</span>
           </div>
-          {showLogs ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {showLogs ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
         </button>
 
         {showLogs && (
-          <div className="mt-2 p-3 bg-black/90 text-emerald-400 font-mono text-[11px] rounded-2xl border border-slate-800 max-h-48 overflow-y-auto text-left whitespace-pre-wrap leading-relaxed">
+          <div className="mt-2 p-3 bg-black/90 text-emerald-400 font-mono text-[11px] rounded-2xl border border-slate-800 max-h-48 overflow-y-auto overflow-x-hidden text-left whitespace-pre-wrap break-all leading-relaxed">
             {logs.length === 0 ? (
               <span className="text-slate-500">Menunggu stream log dari FFmpeg...</span>
             ) : (
               logs.slice(-30).map((l, idx) => (
-                <div key={idx} className="hover:text-white transition-colors">{l}</div>
+                <div key={idx} className="hover:text-white transition-colors break-all">{l}</div>
               ))
             )}
           </div>

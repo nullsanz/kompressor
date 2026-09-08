@@ -65,7 +65,7 @@ export default function PresetSelector({
             <div
               key={preset.id}
               onClick={() => onSelectPreset(preset.id)}
-              className={`relative rounded-2xl p-3.5 border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between ${
+              className={`relative rounded-2xl p-3.5 border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between min-w-0 ${
                 isSelected
                   ? 'border-rose-500 ring-2 ring-rose-500/30 bg-rose-500/5 shadow-md shadow-rose-500/10'
                   : isDark
@@ -73,17 +73,17 @@ export default function PresetSelector({
                   : 'border-slate-200 bg-white hover:bg-slate-50 shadow-xs'
               }`}
             >
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-xl bg-slate-950/40 border border-slate-800/80">
+              <div className="min-w-0 w-full">
+                <div className="flex items-start justify-between gap-2 mb-2 min-w-0 w-full">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="p-1.5 rounded-xl bg-slate-950/40 border border-slate-800/80 shrink-0">
                       {getIcon(preset.icon)}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-xs sm:text-sm tracking-tight leading-snug">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-xs sm:text-sm tracking-tight leading-snug truncate" title={preset.name}>
                         {preset.name}
                       </h4>
-                      <span className="text-[10px] font-mono text-slate-400">
+                      <span className="text-[10px] font-mono text-slate-400 block truncate">
                         {preset.commandRef}
                       </span>
                     </div>
@@ -105,11 +105,11 @@ export default function PresetSelector({
               </div>
 
               {/* Badges Footer */}
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/40 text-[10px]">
-                <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border ${getBadgeClass(preset.badgeColor)}`}>
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/40 text-[10px] min-w-0 w-full">
+                <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border shrink-0 ${getBadgeClass(preset.badgeColor)}`}>
                   {preset.badge}
                 </span>
-                <span className="text-slate-400 font-medium truncate">
+                <span className="text-slate-400 font-medium truncate min-w-0">
                   {preset.resolutionLabel}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default function PresetSelector({
         {!isImageFile && (
           <div
             onClick={() => onSelectPreset('custom')}
-            className={`relative rounded-2xl p-3.5 border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between ${
+            className={`relative rounded-2xl p-3.5 border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between min-w-0 ${
               selectedPresetId === 'custom'
                 ? 'border-blue-500 ring-2 ring-blue-500/30 bg-blue-500/5 shadow-md shadow-blue-500/10'
                 : isDark
@@ -129,17 +129,17 @@ export default function PresetSelector({
                 : 'border-slate-200 bg-white hover:bg-slate-50 shadow-xs'
             }`}
           >
-            <div>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500">
+            <div className="min-w-0 w-full">
+              <div className="flex items-start justify-between gap-2 mb-2 min-w-0 w-full">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="p-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 shrink-0">
                     <Sliders className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm tracking-tight leading-snug">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-xs sm:text-sm tracking-tight leading-snug truncate">
                       Mode Kustom (Manual)
                     </h4>
-                    <span className="text-[10px] font-mono text-slate-400">
+                    <span className="text-[10px] font-mono text-slate-400 block truncate">
                       Parameter Bebas
                     </span>
                   </div>
@@ -159,11 +159,11 @@ export default function PresetSelector({
               </p>
             </div>
 
-            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/40 text-[10px]">
-              <span className="px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border bg-blue-500/10 text-blue-400 border-blue-500/20">
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/40 text-[10px] min-w-0 w-full">
+              <span className="px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border bg-blue-500/10 text-blue-400 border-blue-500/20 shrink-0">
                 Lanjutan
               </span>
-              <span className="text-slate-400 font-medium">
+              <span className="text-slate-400 font-medium truncate min-w-0">
                 Fleksibel Penuh
               </span>
             </div>

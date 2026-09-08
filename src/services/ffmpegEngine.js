@@ -82,7 +82,12 @@ export async function processVideo({
 }) {
   const instance = await getFFmpegInstance(onLog, onProgress);
 
-  const inputName = `input_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+  // Sanitize input extension safely
+  const rawExt = (file.name && file.name.includes('.')) 
+    ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '')
+    : 'mp4';
+  const ext = ['mp4', 'mov', 'mkv', 'webm', 'avi', '3gp'].includes(rawExt) ? rawExt : 'mp4';
+  const inputName = `input_${Date.now()}.${ext}`;
   const outputName = `output_${Date.now()}.mp4`;
 
   onLog(`[Engine] Memuat file "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB) ke memori virtual...`);
@@ -170,11 +175,17 @@ export async function processVideo({
   const outputBlob = new Blob([outputData.buffer], { type: 'video/mp4' });
   const outputUrl = URL.createObjectURL(outputBlob);
 
+  // Buat nama output yang rapi dan aman (max 30 karakter dasar nama asli)
+  const baseName = (file.name || 'video')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .substring(0, 30);
+
   return {
     blob: outputBlob,
     url: outputUrl,
     size: outputBlob.size,
-    name: `KOMPRES_ANULL_${preset.id.toUpperCase()}_${Date.now()}.mp4`
+    name: `${baseName}_${preset.id.toUpperCase()}_HD.mp4`
   };
 }
 
@@ -190,7 +201,13 @@ export async function processPPHD({
 }) {
   const instance = await getFFmpegInstance(onLog, onProgress);
 
-  const ext = isVideo ? 'mp4' : (file.name.split('.').pop() || 'jpg');
+  const rawExt = (file.name && file.name.includes('.'))
+    ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '')
+    : (isVideo ? 'mp4' : 'jpg');
+  const ext = isVideo 
+    ? (['mp4', 'mov', 'webm', 'mkv'].includes(rawExt) ? rawExt : 'mp4')
+    : (['jpg', 'jpeg', 'png', 'webp'].includes(rawExt) ? rawExt : 'jpg');
+
   const inputName = `input_pp_${Date.now()}.${ext}`;
   const outputName = `out_pp_${Date.now()}.jpg`;
 
@@ -229,10 +246,15 @@ export async function processPPHD({
   const outputBlob = new Blob([outputData.buffer], { type: 'image/jpeg' });
   const outputUrl = URL.createObjectURL(outputBlob);
 
+  const baseName = (file.name || 'foto')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .substring(0, 30);
+
   return {
     blob: outputBlob,
     url: outputUrl,
     size: outputBlob.size,
-    name: `FOTO_PROFIL_WA_HD_1X1_${Date.now()}.jpg`
+    name: `${baseName}_PPHD_1x1.jpg`
   };
 }

@@ -79,20 +79,20 @@ export default function VideoTrimmer({
       isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
     }`}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center">
+      <div className="flex items-center justify-between gap-3 mb-3 min-w-0 w-full">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
             <Scissors className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="font-bold text-sm">Pemotong Durasi (Trimmer)</h3>
-            <p className="text-[11px] text-slate-400">Sesuaikan durasi Status WhatsApp atau Story</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-sm truncate">Pemotong Durasi (Trimmer)</h3>
+            <p className="text-[11px] text-slate-400 truncate">Sesuaikan durasi Status WhatsApp atau Story</p>
           </div>
         </div>
 
         {/* Selected Duration Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-xs font-black">
-          <Clock className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-xs font-black shrink-0">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
           <span>{trimmedDuration.toFixed(1)}s Dipilih</span>
         </div>
       </div>

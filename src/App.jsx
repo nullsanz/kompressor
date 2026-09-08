@@ -278,10 +278,10 @@ export default function App() {
 
         {/* Stage 2: Configuration & Preview (When File is Selected) */}
         {!isProcessing && !result && selectedFile && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start animate-in slide-up duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start animate-in slide-up duration-300 w-full min-w-0">
             
             {/* Left Column: Trimmer / Video Player Preview */}
-            <div className="lg:col-span-5 space-y-5">
+            <div className="lg:col-span-5 space-y-5 w-full min-w-0">
               {fileMetadata?.type === 'video' ? (
                 <VideoTrimmer
                   isDark={isDark}
@@ -292,11 +292,11 @@ export default function App() {
                 />
               ) : (
                 /* Photo Preview for PPHD */
-                <div className={`p-5 rounded-3xl border text-center space-y-4 ${
+                <div className={`p-5 rounded-3xl border text-center space-y-4 w-full min-w-0 ${
                   isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
                 }`}>
                   <h4 className="font-bold text-sm flex items-center justify-center gap-2 text-cyan-400">
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4 shrink-0" />
                     <span>Pratinjau Foto Profil 1:1</span>
                   </h4>
                   <div className="w-48 h-48 mx-auto rounded-3xl overflow-hidden border-2 border-dashed border-cyan-500/40 p-1">
@@ -314,7 +314,7 @@ export default function App() {
             </div>
 
             {/* Right Column: Preset Chooser & Action */}
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 w-full min-w-0">
               {/* Preset Selector */}
               <PresetSelector
                 isDark={isDark}
@@ -333,17 +333,17 @@ export default function App() {
               )}
 
               {/* Action Submit Button */}
-              <div className="pt-2">
+              <div className="pt-2 w-full min-w-0">
                 <button
                   type="button"
                   onClick={handleStartCompression}
                   className="w-full py-4 px-6 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-xl shadow-rose-600/30 transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
                 >
-                  <Zap className="w-5 h-5 fill-white" />
-                  <span>
+                  <Zap className="w-5 h-5 fill-white shrink-0" />
+                  <span className="truncate max-w-full">
                     Mulai Kompresi {activePresetObj.name}
                   </span>
-                  <ArrowRight className="w-5 h-5 ml-1" />
+                  <ArrowRight className="w-5 h-5 ml-1 shrink-0" />
                 </button>
 
                 <p className="text-center text-[11px] text-slate-400 mt-2.5">
