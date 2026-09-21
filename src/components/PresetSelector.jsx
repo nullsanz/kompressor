@@ -65,7 +65,7 @@ export default function PresetSelector({
               onClick={() => onSelectPreset(preset.id)}
               className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 border-3 border-slate-900 ${
                 isSelected
-                  ? 'bg-[#ffd1ba] shadow-[4px_4px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
+                  ? 'bg-[#fef08a] shadow-[4px_4px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
                   : 'bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_#111827] hover:shadow-[4px_4px_0px_0px_#111827]'
               }`}
             >

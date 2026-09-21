@@ -64,7 +64,7 @@ export default function Navbar({ engineStatus }) {
             <span>Downloader</span>
           </a>
 
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#ffd1ba] text-slate-900 text-xs font-black uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#fef08a] text-slate-900 text-xs font-black uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
             <Video className="w-3.5 h-3.5 text-rose-600" />
             <span>Kompres Video</span>
           </span>
@@ -123,7 +123,7 @@ export default function Navbar({ engineStatus }) {
           <Download className="w-3 h-3 text-pink-600" />
           <span>Downloader</span>
         </a>
-        <span className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#ffd1ba] border-2 border-slate-900 text-slate-900 text-[11px] font-black uppercase shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
+        <span className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#fef08a] border-2 border-slate-900 text-slate-900 text-[11px] font-black uppercase shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
           <Video className="w-3 h-3 text-rose-600" />
           <span>Kompres</span>
         </span>

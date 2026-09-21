@@ -118,7 +118,7 @@ export default function ResultComparison({
           </p>
         </div>
 
-        <div className="p-3.5 rounded-lg border-2 border-slate-900 bg-[#ffd1ba] text-slate-900 min-w-0 shadow-[2px_2px_0px_0px_#111827]">
+        <div className="p-3.5 rounded-lg border-2 border-slate-900 bg-[#fef08a] text-slate-900 min-w-0 shadow-[2px_2px_0px_0px_#111827]">
           <span className="text-[10px] font-black uppercase tracking-wider block mb-1 truncate text-slate-800">
             Ukuran Hasil
           </span>
@@ -145,7 +145,7 @@ export default function ResultComparison({
             onClick={() => setActiveTab('result')}
             className={`flex-1 py-2 px-3 rounded-md transition-all uppercase tracking-wider truncate cursor-pointer ${
               activeTab === 'result'
-                ? 'bg-[#ffd1ba] text-slate-900 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]'
+                ? 'bg-[#fef08a] text-slate-900 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]'
                 : 'text-slate-700 hover:text-slate-900'
             }`}
           >

@@ -110,7 +110,7 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={togglePlay}
-          className="absolute inset-0 m-auto w-12 h-12 rounded-xl bg-[#ffd1ba] hover:bg-[#ffc4a6] border-3 border-slate-900 text-slate-900 flex items-center justify-center shadow-[3px_3px_0px_0px_#111827] transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
+          className="absolute inset-0 m-auto w-12 h-12 rounded-xl bg-[#fef08a] hover:bg-[#fde047] border-3 border-slate-900 text-slate-900 flex items-center justify-center shadow-[3px_3px_0px_0px_#111827] transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
         >
           {isPlaying ? <Pause className="w-5 h-5 fill-slate-900 text-slate-900" /> : <Play className="w-5 h-5 fill-slate-900 text-slate-900 ml-0.5" />}
         </button>
@@ -124,7 +124,7 @@ export default function VideoTrimmer({
           onClick={() => applyQuickPreset(30)}
           className={`px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
             trimmedDuration <= 30.1 && trimRange.start === 0 && duration > 30
-              ? 'bg-[#ffd1ba] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
+              ? 'bg-[#fef08a] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
               : 'bg-white text-slate-900 hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#111827]'
           }`}
         >
@@ -136,7 +136,7 @@ export default function VideoTrimmer({
           onClick={() => applyQuickPreset(60)}
           className={`px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
             trimmedDuration <= 60.1 && trimmedDuration > 30.1 && trimRange.start === 0 && duration > 60
-              ? 'bg-[#ffd1ba] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
+              ? 'bg-[#fef08a] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
               : 'bg-white text-slate-900 hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#111827]'
           }`}
         >

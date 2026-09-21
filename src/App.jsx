@@ -170,7 +170,7 @@ export default function App() {
   const activePresetObj = PRESETS.find(p => p.id === selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-[#ffd1ba] selection:text-slate-900">
+    <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-[#fef08a] selection:text-slate-900">
       {/* Navigation Bar */}
       <Navbar engineStatus={engineStatus} />
 
@@ -179,7 +179,7 @@ export default function App() {
         
         {/* Hero Section */}
         {!selectedFile && !result && (
-          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-200">
+          <div className="text-center space-y-4 max-w-4xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-200">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-[#ffe4e6] text-rose-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
               <Sparkles className="w-3.5 h-3.5 text-rose-600" />
               <span>FFmpeg WebAssembly • Identik Setting Bot WA 100%</span>
@@ -236,7 +236,7 @@ export default function App() {
 
         {/* Stage 1: Upload Dropzone */}
         {!isProcessing && !result && (
-          <div className="w-full max-w-3xl mx-auto">
+          <div className="w-full max-w-5xl mx-auto">
             <FileDropzone
               selectedFile={selectedFile}
               fileMetadata={fileMetadata}

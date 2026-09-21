@@ -152,7 +152,7 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
             </div>
 
             <div className="flex items-center gap-2 flex-wrap justify-center pt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#ffd1ba] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#fef08a] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
                 <Film className="w-3.5 h-3.5 text-slate-900" />
                 <span>Video Bebas Durasi</span>
               </span>
@@ -194,7 +194,7 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
 
                 {/* Metadata Chips */}
                 <div className="flex items-center gap-2 flex-wrap mt-1.5 text-xs font-bold text-slate-600 min-w-0">
-                  <span className="text-slate-900 bg-[#ffd1ba] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
+                  <span className="text-slate-900 bg-[#fef08a] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
                     {formatBytes(selectedFile.size)}
                   </span>
                   {fileMetadata?.type === 'video' && fileMetadata.duration > 0 && (
