@@ -37,18 +37,151 @@
   background-size: 20px 20px;
 }
 
-/* Modern Clean Glass & Solid Panels */
+/* ── TETRIS TYPEUI NEO-BRUTALIST LIGHT TOKENS ── */
+.tetris-card {
+  background: #ffffff;
+  border: 2px solid #111827;
+  border-radius: 16px;
+  box-shadow: 3px 3px 0px 0px #111827;
+  transition: all 0.15s ease-in-out;
+}
+
+.tetris-card:hover {
+  box-shadow: 4px 4px 0px 0px #111827;
+  transform: translateY(-1px);
+}
+
+.tetris-card-dashed {
+  background: #ffffff;
+  border: 2px dashed #111827;
+  border-radius: 16px;
+  box-shadow: 2px 2px 0px 0px #111827;
+}
+
+.tetris-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid #111827;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 10px 20px;
+  box-shadow: 2px 2px 0px 0px #111827;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tetris-btn:hover {
+  box-shadow: 3px 3px 0px 0px #111827;
+  transform: translateY(-1px);
+}
+
+.tetris-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0px 0px 0px 0px #111827;
+}
+
+/* Tetris Button Variants */
+.tetris-btn--brand {
+  background-color: #ffd1ba;
+  color: #111827;
+}
+.tetris-btn--brand:hover {
+  background-color: #ffc4a6;
+}
+
+.tetris-btn--primary {
+  background-color: #111827;
+  color: #ffffff;
+}
+.tetris-btn--primary:hover {
+  background-color: #1f2937;
+}
+
+.tetris-btn--secondary {
+  background-color: #ffffff;
+  color: #111827;
+}
+.tetris-btn--secondary:hover {
+  background-color: #f8fafc;
+}
+
+.tetris-btn--success {
+  background-color: #d0fae5;
+  color: #065f46;
+}
+.tetris-btn--success:hover {
+  background-color: #a7f3d0;
+}
+
+.tetris-btn--danger {
+  background-color: #ffe4e6;
+  color: #9f1239;
+}
+.tetris-btn--danger:hover {
+  background-color: #fecdd3;
+}
+
+.tetris-btn--blue {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+.tetris-btn--blue:hover {
+  background-color: #bfdbfe;
+}
+
+/* Tetris Input Tokens */
+.tetris-input {
+  background-color: #ffffff;
+  border: 2px solid #111827;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  box-shadow: 2px 2px 0px 0px #111827;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+  width: 100%;
+}
+
+.tetris-input:focus {
+  border-color: #111827;
+  box-shadow: 3px 3px 0px 0px #111827;
+  transform: translateY(-1px);
+}
+
+/* Tetris Badge */
+.tetris-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 2px solid #111827;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 1.5px 1.5px 0px 0px #111827;
+}
+
+/* Modern Clean Glass & Solid Panels (Legacy fallback) */
 .glass-panel {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #111827;
   border-radius: 16px;
-  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  box-shadow: 3px 3px 0px 0px #111827;
   transition: all 0.2s ease-in-out;
 }
 
 .glass-panel-hover:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  box-shadow: 4px 4px 0px 0px #111827;
   transform: translateY(-1px);
 }
 
@@ -80,5 +213,5 @@
 
 /* Range input styling */
 input[type="range"] {
-  accent-color: #e11d48;
+  accent-color: #111827;
 }

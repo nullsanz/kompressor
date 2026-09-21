@@ -170,7 +170,7 @@ export default function App() {
   const activePresetObj = PRESETS.find(p => p.id === selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-rose-600 selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-[#ffd1ba] selection:text-slate-900">
       {/* Navigation Bar */}
       <Navbar engineStatus={engineStatus} />
 
@@ -180,38 +180,38 @@ export default function App() {
         {/* Hero Section */}
         {!selectedFile && !result && (
           <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-200">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-xs">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#ffe4e6] text-rose-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
               <Sparkles className="w-3.5 h-3.5 text-rose-600" />
               <span>FFmpeg WebAssembly • Identik Setting Bot WA 100%</span>
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900">
               Kompres Video Status WA & Story IG <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500">
+              <span className="text-slate-900 underline decoration-[#ffd1ba] decoration-wavy decoration-4">
                 Ultra HD Tanpa Buram
               </span>
             </h2>
 
-            <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-bold max-w-2xl mx-auto">
               Bypass algoritma kompresi WhatsApp & Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
             {/* Badges Strip */}
-            <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-bold">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-black uppercase">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 <span>Status WA 1080p</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-purple-600" />
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-purple-700" />
                 <span>Story IG 60 FPS</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-rose-600" />
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-rose-700" />
                 <span>TikTok 30 Mbps</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-blue-600" />
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+                <ShieldCheck className="w-4 h-4 text-blue-700" />
                 <span>100% Privasi Lokal</span>
               </span>
             </div>
@@ -220,14 +220,14 @@ export default function App() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-xs">
+          <div className="p-4 rounded-xl bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 text-xs sm:text-sm font-black flex items-center justify-between gap-3 shadow-[3px_3px_0px_0px_#111827]">
             <div className="flex items-center gap-2.5">
-              <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
+              <AlertCircle className="w-5 h-5 shrink-0 text-rose-700" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="font-bold text-xs text-rose-800 hover:text-rose-950 cursor-pointer"
+              className="font-black text-xs text-rose-900 hover:text-black cursor-pointer uppercase underline"
             >
               Tutup
             </button>
@@ -261,19 +261,19 @@ export default function App() {
                 />
               ) : (
                 /* Photo Preview for PPHD */
-                <div className="p-5 rounded-2xl border border-slate-200/90 bg-white shadow-sm text-center space-y-4 w-full min-w-0">
-                  <h4 className="font-bold text-sm text-slate-900 flex items-center justify-center gap-2">
+                <div className="p-5 rounded-2xl border-2 border-slate-900 bg-white shadow-[3px_3px_0px_0px_#111827] text-center space-y-4 w-full min-w-0">
+                  <h4 className="font-black text-sm text-slate-900 flex items-center justify-center gap-2 uppercase tracking-wide">
                     <Sparkles className="w-4 h-4 shrink-0 text-cyan-600" />
                     <span>Pratinjau Foto Profil 1:1</span>
                   </h4>
-                  <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border-2 border-dashed border-slate-200 p-1 bg-slate-50">
+                  <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border-2 border-dashed border-slate-900 p-1 bg-slate-50 shadow-[2px_2px_0px_0px_#111827]">
                     <img
                       src={fileMetadata?.previewUrl}
                       alt="Pratinjau Foto"
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
-                  <p className="text-xs font-medium text-slate-500">
+                  <p className="text-xs font-bold text-slate-600">
                     Foto akan di-crop otomatis bujur sangkar 1080x1080 dengan filter penajaman Lanczos.
                   </p>
                 </div>
@@ -302,16 +302,16 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleStartCompression}
-                  className="w-full py-4 px-6 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl shadow-sm hover:shadow-md font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                  className="tetris-btn tetris-btn--brand w-full py-4 px-6 text-sm sm:text-base font-black flex items-center justify-center gap-2.5 shadow-[3px_3px_0px_0px_#111827] hover:shadow-[4px_4px_0px_0px_#111827] active:shadow-none"
                 >
-                  <Zap className="w-5 h-5 fill-white shrink-0" />
+                  <Zap className="w-5 h-5 fill-slate-900 shrink-0" />
                   <span className="truncate max-w-full">
                     Mulai Kompresi {activePresetObj.name}
                   </span>
                   <ArrowRight className="w-5 h-5 ml-1 shrink-0" />
                 </button>
 
-                <p className="text-center text-xs font-medium text-slate-500 mt-2.5">
+                <p className="text-center text-xs font-bold text-slate-500 mt-2.5">
                   ⚡ Diproses instan oleh WebAssembly di browser Anda tanpa antrean server
                 </p>
               </div>
