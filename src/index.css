@@ -52,6 +52,16 @@
   transform: translateY(-1px);
 }
 
+/* No Scrollbar Utility with Overscroll Containment */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
