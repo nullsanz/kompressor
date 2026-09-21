@@ -9,14 +9,9 @@ export default function Navbar({ engineStatus }) {
         {/* Brand with Avatar */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="relative shrink-0">
-            <img
-              src="/avatar.jpg"
-              alt="Anull Brand Avatar"
-              className="w-10 h-10 object-cover rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]"
-              onError={(e) => {
-                e.currentTarget.src = '/favicon.ico';
-              }}
-            />
+            <div className="w-10 h-10 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827] bg-[#ffd1ba] flex items-center justify-center">
+              <span className="text-sm font-black text-slate-900 select-none">A</span>
+            </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full" />
           </div>
 
