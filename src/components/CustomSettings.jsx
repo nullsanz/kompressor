@@ -21,10 +21,10 @@ export default function CustomSettings({
   };
 
   return (
-    <div className="rounded-2xl p-4 sm:p-5 border-2 border-slate-900 bg-white shadow-[3px_3px_0px_0px_#111827] space-y-4">
+    <div className="rounded-xl p-4 sm:p-5 border-3 border-slate-900 bg-white shadow-[4px_4px_0px_0px_#111827] space-y-4">
       <div className="flex items-center gap-2 pb-3 border-b-2 border-dashed border-slate-300">
         <Sliders className="w-4 h-4 text-blue-700" />
-        <h4 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-wide">Konfigurasi Kompresi Kustom</h4>
+        <h4 className="font-heading text-base sm:text-lg text-slate-900 uppercase tracking-wide">Konfigurasi Kompresi Kustom</h4>
       </div>
 
       {/* CRF Slider */}

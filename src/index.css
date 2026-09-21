@@ -1,8 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Open+Sans:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── AUTHENTIC TETRIS TYPEUI DESIGN TOKENS ── */
+:root {
+  --font-heading: 'Bangers', cursive, system-ui, sans-serif;
+  --font-sans: 'Open Sans', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --section-bg: #f0f4f8;
+  --neutral-primary: #ffffff;
+  --neutral-primary-soft: #f8fafc;
+  --neutral-tertiary: #f1f5f9;
+  --border-default: #111827;
+  --brand: #f43f5e;
+  --brand-softer: #ffe4e6;
+  --brand-strong: #be123c;
+  --heading: #111827;
+  --body: #334155;
+  --body-subtle: #64748b;
+  --gradient-shadow: #111827;
+}
 
 @layer base {
   *, ::before, ::after {
@@ -19,10 +37,15 @@
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #f8fafc;
-    color: #0f172a;
+    font-family: var(--font-sans);
+    background-color: var(--section-bg);
+    color: var(--heading);
     -webkit-font-smoothing: antialiased;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
   }
 
   img, video {
@@ -30,145 +53,178 @@
   }
 }
 
-/* Subtle Modern Dot Grid Background */
+/* ── AUTHENTIC BLUEPRINT / NOTEBOOK GRAPH GRID BACKGROUND ── */
 .tetris-grid-bg {
-  background-color: #f8fafc;
-  background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
-  background-size: 20px 20px;
+  background-color: var(--section-bg);
+  background-image: 
+    linear-gradient(color-mix(in srgb, var(--border-default) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border-default) 8%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* ── TETRIS TYPEUI NEO-BRUTALIST LIGHT TOKENS ── */
+/* ── AUTHENTIC TETRIS CARDS (DASHED & SOLID) ── */
 .tetris-card {
-  background: #ffffff;
-  border: 2px solid #111827;
-  border-radius: 16px;
-  box-shadow: 3px 3px 0px 0px #111827;
-  transition: all 0.15s ease-in-out;
+  background: var(--neutral-primary);
+  border: 3px dashed var(--border-default);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0px 0px var(--border-default);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tetris-card:hover {
-  box-shadow: 4px 4px 0px 0px #111827;
-  transform: translateY(-1px);
+  box-shadow: 6px 6px 0px 0px var(--border-default);
+  transform: translate(-1px, -1px);
 }
 
-.tetris-card-dashed {
-  background: #ffffff;
-  border: 2px dashed #111827;
-  border-radius: 16px;
-  box-shadow: 2px 2px 0px 0px #111827;
+.tetris-card-solid {
+  background: var(--neutral-primary);
+  border: 3px solid var(--border-default);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0px 0px var(--border-default);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tetris-card-solid:hover {
+  box-shadow: 6px 6px 0px 0px var(--border-default);
+  transform: translate(-1px, -1px);
+}
+
+/* ── AUTHENTIC TETRIS BUTTONS & CLIP-PATH ── */
+.tetris-btn-clip {
+  clip-path: polygon(calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0);
+}
+
+.tetris-btn-wrap {
+  isolation: isolate;
+  display: inline-flex;
+  position: relative;
+}
+
+.tetris-btn-wrap.w-full,
+.tetris-btn-wrap.flex-1 {
+  min-width: 0;
+  display: flex;
+}
+
+.tetris-btn-wrap.w-full,
+.tetris-btn-wrap.w-full > .tetris-btn,
+.tetris-btn-wrap.flex-1 > .tetris-btn {
+  width: 100%;
+}
+
+.tetris-btn-wrap:before {
+  content: "";
+  z-index: 0;
+  background: var(--gradient-shadow);
+  clip-path: polygon(calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0);
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  transform: translate(4px, 4px);
+  transition: transform 80ms ease-out;
+}
+
+.tetris-btn-wrap:hover:before {
+  transform: translate(5px, 5px);
+}
+
+.tetris-btn-wrap:active:before {
+  transform: translate(2px, 2px);
+}
+
+.tetris-btn-wrap > .tetris-btn {
+  z-index: 1;
+  position: relative;
 }
 
 .tetris-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 2px solid #111827;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 0.85rem;
-  padding: 10px 20px;
-  box-shadow: 2px 2px 0px 0px #111827;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
-  user-select: none;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  border: 2px solid var(--border-default);
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: inline-flex;
+  user-select: none;
+  transition: transform 80ms ease-out, filter 0.12s;
 }
 
-.tetris-btn:hover {
-  box-shadow: 3px 3px 0px 0px #111827;
-  transform: translateY(-1px);
-}
-
-.tetris-btn:active {
-  transform: translate(1.5px, 1.5px);
-  box-shadow: 0px 0px 0px 0px #111827;
-}
-
-/* Tetris Button Variants */
 .tetris-btn--brand {
-  background-color: #ffd1ba;
-  color: #111827;
+  background-color: var(--brand);
+  color: #ffffff;
+  border-color: var(--border-default);
 }
 .tetris-btn--brand:hover {
-  background-color: #ffc4a6;
+  filter: brightness(1.08);
+}
+.tetris-btn--brand:active:not(:disabled) {
+  transform: translate(2px, 2px);
 }
 
-.tetris-btn--primary {
-  background-color: #111827;
-  color: #ffffff;
+.tetris-btn--yellow {
+  background-color: #fef08a;
+  color: var(--border-default);
 }
-.tetris-btn--primary:hover {
-  background-color: #1f2937;
+.tetris-btn--yellow:hover {
+  filter: brightness(1.05);
 }
 
 .tetris-btn--secondary {
   background-color: #ffffff;
-  color: #111827;
+  color: var(--border-default);
 }
 .tetris-btn--secondary:hover {
-  background-color: #f8fafc;
+  background-color: var(--neutral-tertiary);
 }
 
 .tetris-btn--success {
   background-color: #d0fae5;
   color: #065f46;
 }
-.tetris-btn--success:hover {
-  background-color: #a7f3d0;
-}
-
-.tetris-btn--danger {
-  background-color: #ffe4e6;
-  color: #9f1239;
-}
-.tetris-btn--danger:hover {
-  background-color: #fecdd3;
-}
 
 .tetris-btn--blue {
   background-color: #dbeafe;
   color: #1e40af;
 }
-.tetris-btn--blue:hover {
-  background-color: #bfdbfe;
-}
 
-/* Tetris Input Tokens */
+/* ── BLOCKY INPUTS & BADGES ── */
 .tetris-input {
-  background-color: #ffffff;
-  border: 2px solid #111827;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: 0.875rem;
+  background: #ffffff;
+  border: 3px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--heading);
   font-weight: 700;
-  color: #111827;
-  box-shadow: 2px 2px 0px 0px #111827;
-  outline: none;
-  transition: all 0.15s ease-in-out;
+  padding: 11px 14px;
+  font-size: 0.9rem;
+  box-shadow: 2px 2px 0px 0px var(--border-default);
+  transition: all 0.15s ease;
   width: 100%;
 }
 
 .tetris-input:focus {
-  border-color: #111827;
-  box-shadow: 3px 3px 0px 0px #111827;
-  transform: translateY(-1px);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand);
+  border-color: var(--border-default);
 }
 
-/* Tetris Badge */
 .tetris-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border: 2px solid #111827;
-  border-radius: 9999px;
+  border: 2px solid var(--border-default);
+  border-radius: 6px;
+  font-size: 0.72rem;
   font-weight: 800;
-  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 1.5px 1.5px 0px 0px #111827;
+  box-shadow: 2px 2px 0px 0px var(--border-default);
 }
 
 /* Modern Clean Glass & Solid Panels (Legacy fallback) */

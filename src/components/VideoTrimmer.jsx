@@ -74,28 +74,28 @@ export default function VideoTrimmer({
   const trimmedDuration = Math.max(0, (trimRange.end || duration) - trimRange.start);
 
   return (
-    <div className="w-full rounded-2xl border-2 border-slate-900 bg-white p-4 sm:p-5 shadow-[3px_3px_0px_0px_#111827] transition-all">
+    <div className="w-full rounded-xl border-3 border-slate-900 bg-white p-4 sm:p-5 shadow-[4px_4px_0px_0px_#111827] transition-all">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-3 min-w-0 w-full">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-xl bg-[#ffe4e6] border-2 border-slate-900 text-rose-700 flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#111827] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#ffe4e6] border-2 border-slate-900 text-rose-700 flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#111827] shrink-0">
             <Scissors className="w-4 h-4 text-slate-900" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide truncate">Pemotong Durasi</h3>
+            <h3 className="font-heading text-base sm:text-lg text-slate-900 uppercase tracking-wide truncate">Pemotong Durasi</h3>
             <p className="text-[11px] font-bold text-slate-500 truncate">Sesuaikan durasi Status WhatsApp atau Story</p>
           </div>
         </div>
 
         {/* Selected Duration Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-lg text-xs font-black shadow-[1.5px_1.5px_0px_0px_#111827] shrink-0">
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-md text-xs font-black shadow-[1.5px_1.5px_0px_0px_#111827] shrink-0">
           <Clock className="w-3.5 h-3.5 shrink-0 text-rose-700" />
           <span>{trimmedDuration.toFixed(1)}s Dipilih</span>
         </div>
       </div>
 
       {/* Video Preview with Player */}
-      <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-h-[300px] sm:max-h-[360px] mx-auto flex items-center justify-center mb-4 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
+      <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-h-[300px] sm:max-h-[360px] mx-auto flex items-center justify-center mb-4 border-3 border-slate-900 shadow-[3px_3px_0px_0px_#111827]">
         <video
           ref={videoRef}
           src={videoUrl}
@@ -106,11 +106,11 @@ export default function VideoTrimmer({
           onPlay={() => setIsPlaying(true)}
         />
         
-        {/* Play/Pause Overlay Button */}
+        {/* Play/Pause Overlay Button (Blocky arcade style) */}
         <button
           type="button"
           onClick={togglePlay}
-          className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-[#ffd1ba] hover:bg-[#ffc4a6] border-2 border-slate-900 text-slate-900 flex items-center justify-center shadow-[2px_2px_0px_0px_#111827] transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
+          className="absolute inset-0 m-auto w-12 h-12 rounded-xl bg-[#ffd1ba] hover:bg-[#ffc4a6] border-3 border-slate-900 text-slate-900 flex items-center justify-center shadow-[3px_3px_0px_0px_#111827] transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
         >
           {isPlaying ? <Pause className="w-5 h-5 fill-slate-900 text-slate-900" /> : <Play className="w-5 h-5 fill-slate-900 text-slate-900 ml-0.5" />}
         </button>
@@ -122,7 +122,7 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={() => applyQuickPreset(30)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
             trimmedDuration <= 30.1 && trimRange.start === 0 && duration > 30
               ? 'bg-[#ffd1ba] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
               : 'bg-white text-slate-900 hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#111827]'
@@ -134,7 +134,7 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={() => applyQuickPreset(60)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
             trimmedDuration <= 60.1 && trimmedDuration > 30.1 && trimRange.start === 0 && duration > 60
               ? 'bg-[#ffd1ba] text-slate-900 shadow-[2px_2px_0px_0px_#111827]'
               : 'bg-white text-slate-900 hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#111827]'
@@ -146,7 +146,7 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={() => applyQuickPreset(0)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-2 border-slate-900 ${
             trimmedDuration >= duration - 0.5 && trimRange.start === 0
               ? 'bg-slate-900 text-white shadow-[2px_2px_0px_0px_#111827]'
               : 'bg-white text-slate-900 hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#111827]'

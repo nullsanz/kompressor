@@ -45,7 +45,7 @@ export default function PresetSelector({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-slate-900" />
-          <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">Pilih Mode Preset FFmpeg</h3>
+          <h3 className="font-heading text-base sm:text-lg text-slate-900 uppercase tracking-wide">Pilih Mode Preset FFmpeg</h3>
         </div>
         <span className="text-xs font-black uppercase text-slate-500">100% Identik Bot WA</span>
       </div>
@@ -63,10 +63,10 @@ export default function PresetSelector({
             <div
               key={preset.id}
               onClick={() => onSelectPreset(preset.id)}
-              className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 ${
+              className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 border-3 border-slate-900 ${
                 isSelected
-                  ? 'bg-[#ffd1ba] border-2 border-slate-900 shadow-[3px_3px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
-                  : 'bg-white border-2 border-slate-900 hover:bg-slate-50 shadow-[2px_2px_0px_0px_#111827] hover:shadow-[3px_3px_0px_0px_#111827]'
+                  ? 'bg-[#ffd1ba] shadow-[4px_4px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
+                  : 'bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_#111827] hover:shadow-[4px_4px_0px_0px_#111827]'
               }`}
             >
               <div className="min-w-0 w-full">
@@ -85,13 +85,13 @@ export default function PresetSelector({
                     </div>
                   </div>
 
-                  {/* Active Radio Box */}
-                  <div className={`w-5 h-5 rounded-full border-2 border-slate-900 flex items-center justify-center shrink-0 transition-all ${
+                  {/* Active Radio Box (Blocky arcade style) */}
+                  <div className={`w-5 h-5 rounded-md border-2 border-slate-900 flex items-center justify-center shrink-0 transition-all shadow-[1px_1px_0px_0px_#111827] ${
                     isSelected 
                       ? 'bg-slate-900 text-white' 
                       : 'bg-white'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
 
@@ -117,10 +117,10 @@ export default function PresetSelector({
         {!isImageFile && (
           <div
             onClick={() => onSelectPreset('custom')}
-            className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 ${
+            className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 border-3 border-slate-900 ${
               selectedPresetId === 'custom'
-                ? 'bg-[#dbeafe] border-2 border-slate-900 shadow-[3px_3px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
-                : 'bg-white border-2 border-slate-900 hover:bg-slate-50 shadow-[2px_2px_0px_0px_#111827] hover:shadow-[3px_3px_0px_0px_#111827]'
+                ? 'bg-[#dbeafe] shadow-[4px_4px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
+                : 'bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_#111827] hover:shadow-[4px_4px_0px_0px_#111827]'
             }`}
           >
             <div className="min-w-0 w-full">
@@ -139,12 +139,12 @@ export default function PresetSelector({
                   </div>
                 </div>
 
-                <div className={`w-5 h-5 rounded-full border-2 border-slate-900 flex items-center justify-center shrink-0 transition-all ${
+                <div className={`w-5 h-5 rounded-md border-2 border-slate-900 flex items-center justify-center shrink-0 transition-all shadow-[1px_1px_0px_0px_#111827] ${
                   selectedPresetId === 'custom' 
                     ? 'bg-slate-900 text-white' 
                     : 'bg-white'
                 }`}>
-                  {selectedPresetId === 'custom' && <Check className="w-3 h-3 stroke-[3]" />}
+                  {selectedPresetId === 'custom' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                 </div>
               </div>
 

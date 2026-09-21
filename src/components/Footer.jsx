@@ -3,16 +3,16 @@ import { ShieldCheck, Heart, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="w-full mt-auto py-8 border-t-2 border-slate-900 bg-white text-slate-700 transition-colors">
+    <footer className="w-full mt-auto py-8 border-t-4 border-slate-900 bg-white text-slate-700 transition-colors">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Security & Privacy Banner */}
-        <div className="p-4 rounded-2xl border-2 border-slate-900 bg-[#d0fae5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-center sm:text-left shadow-[3px_3px_0px_0px_#111827]">
+        <div className="p-4 rounded-xl border-3 border-slate-900 bg-[#d0fae5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-center sm:text-left shadow-[4px_4px_0px_0px_#111827]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white border-2 border-slate-900 text-emerald-700 flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
+            <div className="w-10 h-10 rounded-lg bg-white border-2 border-slate-900 text-emerald-700 flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827]">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <strong className="font-black text-slate-900 block uppercase tracking-wide">
+              <strong className="font-heading text-base sm:text-lg text-slate-900 block uppercase tracking-wide">
                 Privasi 100% Aman & Terjamin
               </strong>
               <p className="text-[11px] text-emerald-900 font-bold">
@@ -20,7 +20,7 @@ export default function Footer() {
               </p>
             </div>
           </div>
-          <span className="shrink-0 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-white text-emerald-950 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]">
+          <span className="shrink-0 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-white text-emerald-950 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]">
             Zero Server Upload
           </span>
         </div>

@@ -180,37 +180,37 @@ export default function App() {
         {/* Hero Section */}
         {!selectedFile && !result && (
           <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-200">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#ffe4e6] text-rose-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-[#ffe4e6] text-rose-900 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]">
               <Sparkles className="w-3.5 h-3.5 text-rose-600" />
               <span>FFmpeg WebAssembly • Identik Setting Bot WA 100%</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900">
-              Kompres Video Status WA & Story IG <br />
-              <span className="text-slate-900 underline decoration-[#ffd1ba] decoration-wavy decoration-4">
+            <h2 className="font-heading text-4xl sm:text-6xl text-slate-900 tracking-wide uppercase leading-tight">
+              Kompres Video Status WA &amp; Story IG <br />
+              <span className="bg-[#fef08a] px-3 py-0.5 border-3 border-slate-900 rounded-md shadow-[3px_3px_0px_0px_#111827] inline-block">
                 Ultra HD Tanpa Buram
               </span>
             </h2>
 
-            <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-bold max-w-2xl mx-auto">
-              Bypass algoritma kompresi WhatsApp & Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
+            <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
+              Bypass algoritma kompresi WhatsApp &amp; Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
-            {/* Badges Strip */}
+            {/* Badges Strip (Blocky arcade style) */}
             <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-black uppercase">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 <span>Status WA 1080p</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-purple-700" />
                 <span>Story IG 60 FPS</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-rose-700" />
                 <span>TikTok 30 Mbps</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-xl shadow-[2px_2px_0px_0px_#111827]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <ShieldCheck className="w-4 h-4 text-blue-700" />
                 <span>100% Privasi Lokal</span>
               </span>
