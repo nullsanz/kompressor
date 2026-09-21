@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,11 +20,116 @@
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 
   img, video {
     max-width: 100%;
   }
+}
+
+/* Tetris TypeUI Light Arcade Grid Background */
+.tetris-grid-bg {
+  background-color: #f8fafc;
+  background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+  background-size: 16px 16px;
+}
+
+/* Tetris Neo-Brutalist Cards */
+.tetris-card {
+  background-color: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 4px 4px 0px #0f172a;
+  border-radius: 4px;
+  transition: all 0.15s ease-in-out;
+}
+
+.tetris-card-sm {
+  background-color: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+  border-radius: 4px;
+}
+
+.tetris-card-interactive {
+  background-color: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  border-radius: 4px;
+  transition: all 0.12s ease-in-out;
+}
+
+.tetris-card-interactive:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+.tetris-card-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #0f172a;
+}
+
+/* Tetris Neo-Brutalist Buttons */
+.tetris-btn {
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.12s ease-in-out;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tetris-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+.tetris-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #0f172a;
+}
+
+/* Tetris Chamfered Clip Path */
+.tetris-btn-clip {
+  clip-path: polygon(
+    calc(100% - 8px) 0px,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0px calc(100% - 8px),
+    0px 0px
+  );
+}
+
+.tetris-badge-clip {
+  clip-path: polygon(
+    calc(100% - 5px) 0px,
+    100% 5px,
+    100% 100%,
+    5px 100%,
+    0px calc(100% - 5px),
+    0px 0px
+  );
+}
+
+/* Tetris Inputs */
+.tetris-input {
+  background-color: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #0f172a;
+  transition: all 0.12s ease;
+}
+
+.tetris-input:focus {
+  outline: none;
+  border-color: #e11d48;
+  box-shadow: 3px 3px 0px #e11d48;
 }
 
 /* Custom Scrollbar */
@@ -36,7 +143,7 @@
   scrollbar-width: none;
 }
 
-/* Range Slider Styling for Video Trimmer */
+/* Neo-Brutalist Range Slider for Video Trimmer */
 input[type=range] {
   -webkit-appearance: none;
   background: transparent;
@@ -50,40 +157,25 @@ input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 20px;
   width: 20px;
-  border-radius: 9999px;
-  background: #f43f5e;
+  border-radius: 4px;
+  background: #e11d48;
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.6), 0 2px 4px rgba(0,0,0,0.4);
-  border: 2px solid #ffffff;
+  box-shadow: 2px 2px 0px #0f172a;
+  border: 2px solid #0f172a;
   transition: transform 0.1s ease;
 }
 
 input[type=range]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
 }
 
 input[type=range]::-moz-range-thumb {
   height: 20px;
   width: 20px;
-  border-radius: 9999px;
-  background: #f43f5e;
+  border-radius: 4px;
+  background: #e11d48;
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.6), 0 2px 4px rgba(0,0,0,0.4);
-  border: 2px solid #ffffff;
+  box-shadow: 2px 2px 0px #0f172a;
+  border: 2px solid #0f172a;
   transition: transform 0.1s ease;
-}
-
-/* Glassmorphism Card Utilities */
-.glass-card {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-card-light {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
 }

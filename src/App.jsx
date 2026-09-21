@@ -2,15 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Zap, 
   Sparkles, 
-  Play, 
   ArrowRight, 
   AlertCircle, 
   CheckCircle2, 
-  Layers, 
-  Clock, 
-  ShieldCheck,
-  Video,
-  Scissors
+  ShieldCheck
 } from 'lucide-react';
 import Navbar from './components/Navbar';
 import FileDropzone from './components/FileDropzone';
@@ -25,24 +20,6 @@ import { PRESETS } from './constants/presets';
 import { getFFmpegInstance, processVideo, processPPHD } from './services/ffmpegEngine';
 
 export default function App() {
-  // Theme Management (Default Dark)
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('kompressor_theme');
-    return saved !== null ? saved === 'dark' : true;
-  });
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('kompressor_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('kompressor_theme', 'light');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(prev => !prev);
-
   // Engine States
   const [engineStatus, setEngineStatus] = useState('idle'); // 'idle' | 'loading' | 'ready' | 'error'
   
@@ -193,55 +170,49 @@ export default function App() {
   const activePresetObj = PRESETS.find(p => p.id === selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
-      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
-    }`}>
+    <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-rose-600 selection:text-white">
       {/* Navigation Bar */}
-      <Navbar
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        engineStatus={engineStatus}
-      />
+      <Navbar engineStatus={engineStatus} />
 
       {/* Main Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 min-w-0">
         
         {/* Hero Section */}
         {!selectedFile && !result && (
-          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-300">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5" />
+          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-950 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+              <Sparkles className="w-3.5 h-3.5 text-rose-600" />
               <span>FFmpeg WebAssembly • Identik Setting Bot WA 100%</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight uppercase text-slate-900">
               Kompres Video Status WA & Story IG <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500">
                 Ultra HD Tanpa Buram
               </span>
             </h2>
 
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              Bypass algoritma kompresi WhatsApp & Instagram langsung di browser kamu. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
+            <p className="text-sm sm:text-base leading-relaxed text-slate-700 font-semibold max-w-2xl mx-auto">
+              Bypass algoritma kompresi WhatsApp & Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
             {/* Badges Strip */}
-            <div className="flex items-center justify-center gap-3 sm:gap-6 pt-2 flex-wrap text-xs font-semibold text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                Status WA 1080p Tajam
+            <div className="flex items-center justify-center gap-3 sm:gap-4 pt-2 flex-wrap text-xs font-black uppercase tracking-wider">
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Status WA 1080p</span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-purple-400" />
-                Story IG 60 FPS Murni
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+                <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                <span>Story IG 60 FPS</span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-rose-400" />
-                TikTok 30 Mbps Bitrate
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+                <CheckCircle2 className="w-4 h-4 text-rose-600" />
+                <span>TikTok 30 Mbps</span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                Privasi 100% Terjaga
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+                <ShieldCheck className="w-4 h-4 text-cyan-600" />
+                <span>100% Privasi Lokal</span>
               </span>
             </div>
           </div>
@@ -249,14 +220,14 @@ export default function App() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="p-4 rounded-[4px] bg-rose-100 border-2 border-rose-600 text-rose-950 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-[3px_3px_0px_#e11d48]">
             <div className="flex items-center gap-2.5">
-              <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+              <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="underline text-xs hover:text-rose-300 shrink-0"
+              className="font-black uppercase tracking-wider text-xs hover:underline shrink-0 text-rose-900 cursor-pointer"
             >
               Tutup
             </button>
@@ -267,7 +238,6 @@ export default function App() {
         {!isProcessing && !result && (
           <div className="w-full max-w-3xl mx-auto">
             <FileDropzone
-              isDark={isDark}
               selectedFile={selectedFile}
               fileMetadata={fileMetadata}
               onFileSelected={handleFileSelected}
@@ -278,13 +248,12 @@ export default function App() {
 
         {/* Stage 2: Configuration & Preview (When File is Selected) */}
         {!isProcessing && !result && selectedFile && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start animate-in slide-up duration-300 w-full min-w-0">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start w-full min-w-0">
             
             {/* Left Column: Trimmer / Video Player Preview */}
             <div className="lg:col-span-5 space-y-5 w-full min-w-0">
               {fileMetadata?.type === 'video' ? (
                 <VideoTrimmer
-                  isDark={isDark}
                   videoUrl={fileMetadata.previewUrl}
                   duration={fileMetadata.duration}
                   trimRange={trimRange}
@@ -292,21 +261,19 @@ export default function App() {
                 />
               ) : (
                 /* Photo Preview for PPHD */
-                <div className={`p-5 rounded-3xl border text-center space-y-4 w-full min-w-0 ${
-                  isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
-                }`}>
-                  <h4 className="font-bold text-sm flex items-center justify-center gap-2 text-cyan-400">
-                    <Sparkles className="w-4 h-4 shrink-0" />
+                <div className="p-5 rounded-[4px] border-2 border-slate-900 bg-white shadow-[4px_4px_0px_#0f172a] text-center space-y-4 w-full min-w-0">
+                  <h4 className="font-black text-sm uppercase tracking-wide flex items-center justify-center gap-2 text-slate-900">
+                    <Sparkles className="w-4 h-4 shrink-0 text-cyan-600" />
                     <span>Pratinjau Foto Profil 1:1</span>
                   </h4>
-                  <div className="w-48 h-48 mx-auto rounded-3xl overflow-hidden border-2 border-dashed border-cyan-500/40 p-1">
+                  <div className="w-48 h-48 mx-auto rounded-[4px] overflow-hidden border-2 border-dashed border-slate-900 p-1">
                     <img
                       src={fileMetadata?.previewUrl}
                       alt="Pratinjau Foto"
-                      className="w-full h-full object-cover rounded-2xl"
+                      className="w-full h-full object-cover rounded-[2px]"
                     />
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs font-semibold text-slate-600">
                     Foto akan di-crop otomatis bujur sangkar 1080x1080 dengan filter penajaman Lanczos.
                   </p>
                 </div>
@@ -317,7 +284,6 @@ export default function App() {
             <div className="lg:col-span-7 space-y-5 w-full min-w-0">
               {/* Preset Selector */}
               <PresetSelector
-                isDark={isDark}
                 selectedPresetId={selectedPresetId}
                 onSelectPreset={setSelectedPresetId}
                 isImageFile={fileMetadata?.type === 'image'}
@@ -326,7 +292,6 @@ export default function App() {
               {/* Custom Settings Panel (If selected) */}
               {selectedPresetId === 'custom' && (
                 <CustomSettings
-                  isDark={isDark}
                   customSettings={customSettings}
                   onSettingsChange={setCustomSettings}
                 />
@@ -337,7 +302,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleStartCompression}
-                  className="w-full py-4 px-6 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-xl shadow-rose-600/30 transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
+                  className="w-full py-4 px-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[4px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_#0f172a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer"
                 >
                   <Zap className="w-5 h-5 fill-white shrink-0" />
                   <span className="truncate max-w-full">
@@ -346,8 +311,8 @@ export default function App() {
                   <ArrowRight className="w-5 h-5 ml-1 shrink-0" />
                 </button>
 
-                <p className="text-center text-[11px] text-slate-400 mt-2.5">
-                  ⚡ Diproses instan oleh WebAssembly di browser kamu tanpa antrean server
+                <p className="text-center text-[11px] font-bold text-slate-500 mt-2.5">
+                  ⚡ Diproses instan oleh WebAssembly di browser Anda tanpa antrean server
                 </p>
               </div>
             </div>
@@ -356,9 +321,8 @@ export default function App() {
 
         {/* Stage 3: Processing Loading State */}
         {isProcessing && (
-          <div className="w-full max-w-xl mx-auto animate-in fade-in duration-300">
+          <div className="w-full max-w-xl mx-auto">
             <ProgressCard
-              isDark={isDark}
               progress={progress}
               statusText={statusText}
               logs={logs}
@@ -369,9 +333,8 @@ export default function App() {
 
         {/* Stage 4: Result & Comparison */}
         {!isProcessing && result && (
-          <div className="w-full max-w-3xl mx-auto animate-in slide-up duration-300">
+          <div className="w-full max-w-3xl mx-auto">
             <ResultComparison
-              isDark={isDark}
               originalFile={selectedFile}
               result={result}
               preset={activePresetObj}
@@ -387,7 +350,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <Footer isDark={isDark} />
+      <Footer />
     </div>
   );
 }
