@@ -179,39 +179,39 @@ export default function App() {
         
         {/* Hero Section */}
         {!selectedFile && !result && (
-          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-950 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6 animate-in fade-in duration-200">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-rose-600" />
               <span>FFmpeg WebAssembly • Identik Setting Bot WA 100%</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight uppercase text-slate-900">
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900">
               Kompres Video Status WA & Story IG <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500">
                 Ultra HD Tanpa Buram
               </span>
             </h2>
 
-            <p className="text-sm sm:text-base leading-relaxed text-slate-700 font-semibold max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
               Bypass algoritma kompresi WhatsApp & Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
             {/* Badges Strip */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 pt-2 flex-wrap text-xs font-black uppercase tracking-wider">
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+            <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-bold">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Status WA 1080p</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-purple-600" />
                 <span>Story IG 60 FPS</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-rose-600" />
                 <span>TikTok 30 Mbps</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-[4px]">
-                <ShieldCheck className="w-4 h-4 text-cyan-600" />
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <span>100% Privasi Lokal</span>
               </span>
             </div>
@@ -220,14 +220,14 @@ export default function App() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="p-4 rounded-[4px] bg-rose-100 border-2 border-rose-600 text-rose-950 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-[3px_3px_0px_#e11d48]">
+          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold flex items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2.5">
               <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="font-black uppercase tracking-wider text-xs hover:underline shrink-0 text-rose-900 cursor-pointer"
+              className="font-bold text-xs text-rose-800 hover:text-rose-950 cursor-pointer"
             >
               Tutup
             </button>
@@ -261,19 +261,19 @@ export default function App() {
                 />
               ) : (
                 /* Photo Preview for PPHD */
-                <div className="p-5 rounded-[4px] border-2 border-slate-900 bg-white shadow-[4px_4px_0px_#0f172a] text-center space-y-4 w-full min-w-0">
-                  <h4 className="font-black text-sm uppercase tracking-wide flex items-center justify-center gap-2 text-slate-900">
+                <div className="p-5 rounded-2xl border border-slate-200/90 bg-white shadow-sm text-center space-y-4 w-full min-w-0">
+                  <h4 className="font-bold text-sm text-slate-900 flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4 shrink-0 text-cyan-600" />
                     <span>Pratinjau Foto Profil 1:1</span>
                   </h4>
-                  <div className="w-48 h-48 mx-auto rounded-[4px] overflow-hidden border-2 border-dashed border-slate-900 p-1">
+                  <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border-2 border-dashed border-slate-200 p-1 bg-slate-50">
                     <img
                       src={fileMetadata?.previewUrl}
                       alt="Pratinjau Foto"
-                      className="w-full h-full object-cover rounded-[2px]"
+                      className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
-                  <p className="text-xs font-semibold text-slate-600">
+                  <p className="text-xs font-medium text-slate-500">
                     Foto akan di-crop otomatis bujur sangkar 1080x1080 dengan filter penajaman Lanczos.
                   </p>
                 </div>
@@ -302,7 +302,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleStartCompression}
-                  className="w-full py-4 px-6 bg-rose-600 hover:bg-rose-700 text-white rounded-[4px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_#0f172a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer"
+                  className="w-full py-4 px-6 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl shadow-sm hover:shadow-md font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all cursor-pointer"
                 >
                   <Zap className="w-5 h-5 fill-white shrink-0" />
                   <span className="truncate max-w-full">
@@ -311,7 +311,7 @@ export default function App() {
                   <ArrowRight className="w-5 h-5 ml-1 shrink-0" />
                 </button>
 
-                <p className="text-center text-[11px] font-bold text-slate-500 mt-2.5">
+                <p className="text-center text-xs font-medium text-slate-500 mt-2.5">
                   ⚡ Diproses instan oleh WebAssembly di browser Anda tanpa antrean server
                 </p>
               </div>

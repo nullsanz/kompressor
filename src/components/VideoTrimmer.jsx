@@ -74,28 +74,28 @@ export default function VideoTrimmer({
   const trimmedDuration = Math.max(0, (trimRange.end || duration) - trimRange.start);
 
   return (
-    <div className="w-full rounded-[4px] border-2 border-slate-900 bg-white p-4 sm:p-5 shadow-[4px_4px_0px_#0f172a] transition-all">
+    <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-sm transition-all">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-3 min-w-0 w-full">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-[4px] bg-rose-600 border-2 border-slate-900 text-white flex items-center justify-center shadow-[2px_2px_0px_#0f172a] shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shadow-xs shrink-0">
             <Scissors className="w-4 h-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-black text-sm uppercase tracking-wide text-slate-900 truncate">Pemotong Durasi</h3>
-            <p className="text-[11px] font-semibold text-slate-500 truncate">Sesuaikan durasi Status WhatsApp atau Story</p>
+            <h3 className="font-bold text-sm text-slate-900 truncate">Pemotong Durasi</h3>
+            <p className="text-[11px] font-medium text-slate-500 truncate">Sesuaikan durasi Status WhatsApp atau Story</p>
           </div>
         </div>
 
         {/* Selected Duration Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-100 border-2 border-slate-900 text-rose-900 rounded-[4px] text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_#0f172a] shrink-0">
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100 text-rose-700 rounded-lg text-xs font-bold shrink-0">
           <Clock className="w-3.5 h-3.5 shrink-0 text-rose-600" />
           <span>{trimmedDuration.toFixed(1)}s Dipilih</span>
         </div>
       </div>
 
       {/* Video Preview with Player */}
-      <div className="relative rounded-[4px] overflow-hidden bg-black aspect-video max-h-[300px] sm:max-h-[360px] mx-auto flex items-center justify-center mb-4 border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+      <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-h-[300px] sm:max-h-[360px] mx-auto flex items-center justify-center mb-4 shadow-sm">
         <video
           ref={videoRef}
           src={videoUrl}
@@ -110,22 +110,22 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={togglePlay}
-          className="absolute inset-0 m-auto w-14 h-14 rounded-[4px] bg-rose-600 border-2 border-slate-900 text-white flex items-center justify-center shadow-[3px_3px_0px_#0f172a] transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
+          className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-slate-900/80 hover:bg-slate-900 backdrop-blur-xs text-white flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95 z-20 cursor-pointer"
         >
-          {isPlaying ? <Pause className="w-6 h-6 fill-white" /> : <Play className="w-6 h-6 fill-white ml-1" />}
+          {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
         </button>
       </div>
 
       {/* Quick Trim Preset Chips */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        <span className="text-xs font-black uppercase text-slate-500 shrink-0">Preset:</span>
+        <span className="text-xs font-bold text-slate-400 shrink-0">Preset:</span>
         <button
           type="button"
           onClick={() => applyQuickPreset(30)}
-          className={`px-3 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-wider border-2 border-slate-900 transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             trimmedDuration <= 30.1 && trimRange.start === 0 && duration > 30
-              ? 'bg-rose-600 text-white shadow-[2px_2px_0px_#0f172a]'
-              : 'bg-white text-slate-900 hover:bg-slate-100 shadow-[2px_2px_0px_#0f172a]'
+              ? 'bg-rose-600 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           ⚡ 0 - 30s (Status WA)
@@ -134,10 +134,10 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={() => applyQuickPreset(60)}
-          className={`px-3 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-wider border-2 border-slate-900 transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             trimmedDuration <= 60.1 && trimmedDuration > 30.1 && trimRange.start === 0 && duration > 60
-              ? 'bg-rose-600 text-white shadow-[2px_2px_0px_#0f172a]'
-              : 'bg-white text-slate-900 hover:bg-slate-100 shadow-[2px_2px_0px_#0f172a]'
+              ? 'bg-rose-600 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           ⚡ 0 - 60s (Story IG & WA)
@@ -146,10 +146,10 @@ export default function VideoTrimmer({
         <button
           type="button"
           onClick={() => applyQuickPreset(0)}
-          className={`px-3 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-wider border-2 border-slate-900 transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             trimmedDuration >= duration - 0.5 && trimRange.start === 0
-              ? 'bg-slate-900 text-white shadow-[2px_2px_0px_#0f172a]'
-              : 'bg-white text-slate-900 hover:bg-slate-100 shadow-[2px_2px_0px_#0f172a]'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           🎬 Penuh ({duration.toFixed(0)}s)
@@ -157,11 +157,11 @@ export default function VideoTrimmer({
       </div>
 
       {/* Range Slider Controls */}
-      <div className="space-y-3 bg-slate-50 p-3.5 rounded-[4px] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+      <div className="space-y-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
         <div>
           <div className="flex items-center justify-between text-xs font-bold mb-1">
             <span className="text-slate-600">Titik Mulai (Start):</span>
-            <span className="font-mono text-rose-600 font-black">{formatSec(trimRange.start)}</span>
+            <span className="font-mono text-rose-600 font-bold">{formatSec(trimRange.start)}</span>
           </div>
           <input
             type="range"
@@ -170,14 +170,14 @@ export default function VideoTrimmer({
             step={0.5}
             value={trimRange.start}
             onChange={(e) => handleSeekToStart(parseFloat(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-[2px] cursor-pointer"
+            className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer"
           />
         </div>
 
         <div>
           <div className="flex items-center justify-between text-xs font-bold mb-1">
             <span className="text-slate-600">Titik Selesai (End):</span>
-            <span className="font-mono text-rose-600 font-black">{formatSec(trimRange.end || duration)}</span>
+            <span className="font-mono text-rose-600 font-bold">{formatSec(trimRange.end || duration)}</span>
           </div>
           <input
             type="range"
@@ -186,7 +186,7 @@ export default function VideoTrimmer({
             step={0.5}
             value={trimRange.end || duration}
             onChange={(e) => handleSeekToEnd(parseFloat(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-[2px] cursor-pointer"
+            className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer"
           />
         </div>
       </div>
