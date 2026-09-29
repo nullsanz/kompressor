@@ -27,7 +27,7 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileMetadata, setFileMetadata] = useState(null);
   const [trimRange, setTrimRange] = useState({ start: 0, end: 30, duration: 30 });
-  const [selectedPresetId, setSelectedPresetId] = useState('khususwa');
+  const [selectedPresetId, setSelectedPresetId] = useState('khususig30k');
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
     preset: 'veryfast',
@@ -85,7 +85,7 @@ export default function App() {
         end: defaultEnd,
         duration: metadata.duration
       });
-      setSelectedPresetId('khususwa');
+      setSelectedPresetId('khususig30k');
     } else {
       setSelectedPresetId('pphd');
     }
@@ -188,27 +188,31 @@ export default function App() {
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-900 tracking-wide uppercase leading-tight">
               Kompres Video Status WA &amp; Story IG <br />
               <span className="bg-[#fef08a] px-3 py-0.5 border-3 border-slate-900 rounded-md shadow-[3px_3px_0px_0px_#111827] inline-block">
-                Ultra HD Tanpa Buram
+                Ultra HD &amp; Luminescence Boost
               </span>
             </h2>
 
             <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
-              Bypass algoritma kompresi WhatsApp &amp; Instagram langsung di browser Anda. Hasil tajam, 60 FPS halus, warna BT.709 anti-pudar, dan 100% diproses di perangkat lokal tanpa upload ke server.
+              Bypass algoritma kompresi WhatsApp, Instagram &amp; TikTok langsung di browser Anda. Monster bitrate 30 Mbps, 60 FPS murni, Dynamic Luminescence Boost anti-redup, dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
             {/* Badges Strip (Blocky arcade style) */}
             <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-black uppercase">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                <span>Status WA 1080p</span>
-              </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-purple-700" />
-                <span>Story IG 60 FPS</span>
+                <span>Story IG 30k (60 FPS)</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-rose-700" />
-                <span>TikTok 30 Mbps</span>
+                <span>TikTok 30 Mbps Monster</span>
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                <span>Status WA Pseudo-HDR</span>
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fef08a] border-2 border-slate-900 text-amber-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-amber-700" />
+                <span>Anti-Redup Pure White</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <ShieldCheck className="w-4 h-4 text-blue-700" />
