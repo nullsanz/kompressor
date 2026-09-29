@@ -6,6 +6,37 @@
 
 export const PRESETS = [
   {
+    id: 'hdrsilau',
+    name: 'TikTok JJ & Story HDR Silau (Peak EDR)',
+    commandRef: '.hdrsilau / .jjtiktok / .hdrjj',
+    badge: 'Peak Brightness 1000 Nits',
+    badgeColor: 'amber',
+    icon: 'Zap',
+    description: 'Trigger layar HP otomatis silau menyala di TikTok & IG Story (Apple EDR / AMOLED 1000 nits). Dilengkapi Pre-Exposure Boost & S-Curve agar teks dan wajah tetap bersih tanpa bug redup kusam!',
+    target: 'TikTok JJ & Story IG (Layar Silau)',
+    resolutionLabel: '1080x1920 Vertikal @ 60 FPS (Peak EDR)',
+    crf: 15,
+    preset: 'veryfast',
+    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,unsharp=5:5:0.8:3:3:0.4,eq=contrast=1.18:brightness=0.06:saturation=1.20",
+    fps: 60,
+    audioBitrate: '320k',
+    audioSampleRate: '48000',
+    extraArgs: [
+      '-profile:v', 'high',
+      '-level', '4.2',
+      '-maxrate', '30000k',
+      '-bufsize', '60000k',
+      '-pix_fmt', 'yuv420p',
+      '-g', '60',
+      '-keyint_min', '30',
+      '-colorspace', 'bt709',
+      '-color_primaries', 'bt709',
+      '-color_trc', 'bt709',
+      '-brand', 'mp42',
+      '-movflags', '+faststart'
+    ]
+  },
+  {
     id: 'khususig30k',
     name: 'Story IG Ultra HD 30k (60 FPS)',
     commandRef: '.khususig30k / .ig30k',
