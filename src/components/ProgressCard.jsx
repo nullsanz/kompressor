@@ -5,7 +5,8 @@ export default function ProgressCard({
   progress, 
   statusText, 
   logs, 
-  elapsedSeconds 
+  elapsedSeconds,
+  liveStats
 }) {
   const [showLogs, setShowLogs] = useState(false);
 
@@ -55,11 +56,28 @@ export default function ProgressCard({
       </div>
 
       {/* Status & Elapsed Time */}
-      <div className="space-y-1 min-w-0 w-full">
+      <div className="space-y-2 min-w-0 w-full">
         <h3 className="font-heading text-lg sm:text-xl uppercase tracking-wide text-slate-900 flex items-center justify-center gap-2 min-w-0 px-2">
           <Loader2 className="w-4 h-4 text-rose-600 animate-spin shrink-0" />
           <span className="truncate max-w-full">{statusText || 'Sedang Memproses Video di Browser...'}</span>
         </h3>
+        
+        {/* Realtime Live Stats (FPS & Speed) */}
+        {liveStats && (liveStats.fps || liveStats.speed) && (
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            {liveStats.fps && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-black font-mono bg-[#dbeafe] border-2 border-slate-900 text-blue-950 shadow-[1.5px_1.5px_0px_0px_#111827]">
+                ⚡ {liveStats.fps} FPS
+              </span>
+            )}
+            {liveStats.speed && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-black font-mono bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 shadow-[1.5px_1.5px_0px_0px_#111827]">
+                🚀 {liveStats.speed} Kecepatan
+              </span>
+            )}
+          </div>
+        )}
+
         <p className="text-xs font-bold text-slate-600 truncate">
           Waktu berjalan: <strong className="font-mono text-rose-600 font-black">{formatElapsed(elapsedSeconds)}</strong> • Dikerjakan langsung di browser Anda
         </p>

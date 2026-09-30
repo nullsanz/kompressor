@@ -17,7 +17,7 @@ import ResultComparison from './components/ResultComparison';
 import Footer from './components/Footer';
 
 import { PRESETS } from './constants/presets';
-import { getFFmpegInstance, processVideo, processPPHD } from './services/ffmpegEngine';
+import { getFFmpegInstance, processVideo, processPPHD, processInstantPatch } from './services/ffmpegEngine';
 
 export default function App() {
   // Engine States
@@ -27,7 +27,8 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileMetadata, setFileMetadata] = useState(null);
   const [trimRange, setTrimRange] = useState({ start: 0, end: 30, duration: 30 });
-  const [selectedPresetId, setSelectedPresetId] = useState('khususig30k');
+  const [selectedPresetId, setSelectedPresetId] = useState('hdrsilau');
+  const [liveStats, setLiveStats] = useState({ fps: '', speed: '' });
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
     preset: 'veryfast',
@@ -85,7 +86,7 @@ export default function App() {
         end: defaultEnd,
         duration: metadata.duration
       });
-      setSelectedPresetId('khususig30k');
+      setSelectedPresetId('hdrsilau');
     } else {
       setSelectedPresetId('pphd');
     }
@@ -110,6 +111,7 @@ export default function App() {
     setProgress(0);
     setLogs([]);
     setElapsedSeconds(0);
+    setLiveStats({ fps: '', speed: '' });
     setStatusText('Mempersiapkan engine WebAssembly...');
 
     // Start Timer
@@ -122,14 +124,29 @@ export default function App() {
       const isImage = fileMetadata?.type === 'image';
       let res = null;
 
-      if (selectedPresetId === 'pphd' && (isImage || fileMetadata?.type === 'video')) {
+      if (selectedPresetId === 'fastpatch') {
+        // Mode Instan Patch Dolby Vision Profile 8.4 (0 Detik / Tanpa Render)
+        setStatusText('Menyuntikkan atom Dolby Vision Profile 8.4 ke file MP4...');
+        res = await processInstantPatch({
+          file: selectedFile,
+          onProgress: ({ ratio, text }) => {
+            if (typeof ratio === 'number') setProgress(ratio);
+            if (text) setStatusText(text);
+          },
+          onLog: (msg) => {
+            appendLog(msg);
+          }
+        });
+      } else if (selectedPresetId === 'pphd' && (isImage || fileMetadata?.type === 'video')) {
         // Foto Profil WA 1:1
         setStatusText('Memproses foto profil 1080x1080 Lanczos Pre-Sharpening...');
         res = await processPPHD({
           file: selectedFile,
           isVideo: fileMetadata?.type === 'video',
-          onProgress: ({ progress }) => {
-            setProgress(progress);
+          onProgress: ({ ratio, progress, text }) => {
+            const p = typeof ratio === 'number' ? ratio : (typeof progress === 'number' ? progress : 0);
+            setProgress(p);
+            if (text) setStatusText(text);
           },
           onLog: (msg) => {
             appendLog(msg);
@@ -143,10 +160,22 @@ export default function App() {
           preset: activePreset,
           customSettings,
           trimRange,
-          onProgress: ({ progress }) => {
-            if (progress > 0 && progress <= 1) {
-              setProgress(progress);
-              setStatusText(`Sedang merender video (${Math.round(progress * 100)}%)...`);
+          onProgress: ({ ratio, progress, text, fps, speed }) => {
+            const currentRatio = typeof ratio === 'number' ? ratio : (typeof progress === 'number' ? progress : 0);
+            if (currentRatio >= 0 && currentRatio <= 1) {
+              setProgress(currentRatio);
+            }
+            if (fps || speed) {
+              setLiveStats({ fps: fps || '', speed: speed || '' });
+            }
+            if (text) {
+              setStatusText(text);
+            } else {
+              const pct = Math.round(currentRatio * 100);
+              let status = `Sedang merender video (${pct}%)...`;
+              if (fps) status += ` • ${fps} FPS`;
+              if (speed) status += ` • Speed ${speed}`;
+              setStatusText(status);
             }
           },
           onLog: (msg) => {
@@ -188,19 +217,27 @@ export default function App() {
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-900 tracking-wide uppercase leading-tight">
               Kompres Video Status WA &amp; Story IG <br />
               <span className="bg-[#fef08a] px-3 py-0.5 border-3 border-slate-900 rounded-md shadow-[3px_3px_0px_0px_#111827] inline-block">
-                Ultra HD &amp; Luminescence Boost
+                Ultra HD &amp; Dolby Vision 8.4 Silau
               </span>
             </h2>
 
             <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
-              Bypass algoritma kompresi WhatsApp, Instagram &amp; TikTok langsung di browser Anda. Monster bitrate 30 Mbps, 60 FPS murni, Dynamic Luminescence Boost anti-redup, dan 100% diproses di perangkat lokal tanpa upload ke server.
+              Bypass algoritma kompresi WhatsApp, Instagram &amp; TikTok langsung di browser Anda. Monster bitrate 30 Mbps, 60 FPS murni, injeksi Dolby Vision Profile 8.4 EDR (Layar Silau), dan 100% diproses di perangkat lokal tanpa upload ke server.
             </p>
 
             {/* Badges Strip (Blocky arcade style) */}
             <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-black uppercase">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fef08a] border-2 border-slate-900 text-amber-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <Sparkles className="w-4 h-4 text-amber-700" />
+                <span>Dolby Vision 8.4 (Layar Silau)</span>
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#cffafe] border-2 border-slate-900 text-cyan-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <Zap className="w-4 h-4 text-cyan-700" />
+                <span>Instan Patch 0 Detik</span>
+              </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-purple-700" />
-                <span>Story IG 30k (60 FPS)</span>
+                <span>Story IG 15M &amp; 30k</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-rose-700" />
@@ -209,10 +246,6 @@ export default function App() {
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 <span>Status WA Pseudo-HDR</span>
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fef08a] border-2 border-slate-900 text-amber-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
-                <CheckCircle2 className="w-4 h-4 text-amber-700" />
-                <span>Anti-Redup Pure White</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <ShieldCheck className="w-4 h-4 text-blue-700" />
@@ -331,6 +364,7 @@ export default function App() {
               statusText={statusText}
               logs={logs}
               elapsedSeconds={elapsedSeconds}
+              liveStats={liveStats}
             />
           </div>
         )}

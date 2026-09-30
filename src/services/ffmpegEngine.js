@@ -1,19 +1,30 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { patchVideoDolbyVision } from './dolbyVisionPatcher.js';
 
 let ffmpeg = null;
 let isLoaded = false;
 let isLoading = false;
 let loadError = null;
 
+// Callbacks dinamis aktif agar event log & progress selalu sampai ke UI komponen aktif
+let activeLogCallback = null;
+let activeProgressCallback = null;
+
+export function setActiveCallbacks(onLog, onProgress) {
+  activeLogCallback = onLog || null;
+  activeProgressCallback = onProgress || null;
+}
+
 /**
  * Inisialisasi & Muat Engine FFmpeg WebAssembly
  */
 export async function getFFmpegInstance(onLogCallback, onProgressCallback) {
+  setActiveCallbacks(onLogCallback, onProgressCallback);
+
   if (isLoaded && ffmpeg) return ffmpeg;
 
   if (isLoading) {
-    // Wait for existing load promise
     while (isLoading) {
       await new Promise(r => setTimeout(r, 100));
     }
@@ -26,17 +37,18 @@ export async function getFFmpegInstance(onLogCallback, onProgressCallback) {
   try {
     ffmpeg = new FFmpeg();
 
-    if (onLogCallback) {
-      ffmpeg.on('log', ({ message }) => {
-        onLogCallback(message);
-      });
-    }
+    // Listener permanen yang meneruskan ke callback aktif saat ini
+    ffmpeg.on('log', ({ message }) => {
+      if (activeLogCallback) {
+        activeLogCallback(message);
+      }
+    });
 
-    if (onProgressCallback) {
-      ffmpeg.on('progress', ({ progress, time }) => {
-        onProgressCallback({ progress, time });
-      });
-    }
+    ffmpeg.on('progress', ({ progress, time }) => {
+      if (activeProgressCallback) {
+        activeProgressCallback({ progress, time });
+      }
+    });
 
     // Gunakan unpkg dengan fallback ke jsdelivr
     const CORE_VERSION = '0.12.10';
@@ -70,17 +82,83 @@ export async function getFFmpegInstance(onLogCallback, onProgressCallback) {
 }
 
 /**
+ * Parsing waktu string FFmpeg (HH:MM:SS.SS) ke detik
+ */
+function parseTimeStringToSeconds(timeStr) {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(':');
+  if (parts.length === 3) {
+    const h = parseFloat(parts[0]) || 0;
+    const m = parseFloat(parts[1]) || 0;
+    const s = parseFloat(parts[2]) || 0;
+    return h * 3600 + m * 60 + s;
+  }
+  return 0;
+}
+
+/**
  * Kompresi Video dengan Preset Bot WA & Trim
  */
 export async function processVideo({
   file,
   preset,
   customSettings,
-  trimRange, // { start: 0, end: 30 }
+  trimRange, // { start: 0, end: 30, duration: 30 }
+  totalDuration = 0,
   onProgress,
   onLog
 }) {
-  const instance = await getFFmpegInstance(onLog, onProgress);
+  const instance = await getFFmpegInstance();
+
+  // Hitung durasi target untuk kalkulasi progress yang 100% presisi
+  const effectiveDuration = (trimRange && trimRange.end > trimRange.start)
+    ? (trimRange.end - trimRange.start)
+    : (totalDuration || trimRange?.duration || 30);
+
+  // Pasang logger & progress tracker cerdas
+  let lastReportedRatio = 0.02;
+  onProgress({ ratio: 0.02, text: 'Memuat video ke memori WebAssembly...' });
+
+  const customLogWrapper = (message) => {
+    if (onLog) onLog(message);
+
+    // Parse FFmpeg progress line: frame= ... fps= ... time=00:00:04.50 speed=1.8x
+    if (typeof message === 'string' && message.includes('time=')) {
+      const timeMatch = message.match(/time=(\d{2}:\d{2}:[\d\.]+)/);
+      const fpsMatch = message.match(/fps=\s*([\d\.]+)/);
+      const speedMatch = message.match(/speed=\s*([\d\.]+)x/);
+
+      if (timeMatch && timeMatch[1]) {
+        const currentSec = parseTimeStringToSeconds(timeMatch[1]);
+        if (effectiveDuration > 0) {
+          const ratio = Math.min(0.95, Math.max(lastReportedRatio, currentSec / effectiveDuration));
+          lastReportedRatio = ratio;
+          onProgress({
+            ratio,
+            fps: fpsMatch ? fpsMatch[1] : null,
+            speed: speedMatch ? `${speedMatch[1]}x` : null,
+            timeSec: currentSec,
+            duration: effectiveDuration
+          });
+        }
+      }
+    }
+  };
+
+  const customProgressWrapper = ({ progress, time }) => {
+    if (typeof progress === 'number' && progress > 0 && progress <= 1) {
+      const ratio = Math.min(0.95, Math.max(lastReportedRatio, progress));
+      lastReportedRatio = ratio;
+      onProgress({ ratio });
+    } else if (typeof time === 'number' && time > 0 && effectiveDuration > 0) {
+      const timeSec = time / 1000000;
+      const ratio = Math.min(0.95, Math.max(lastReportedRatio, timeSec / effectiveDuration));
+      lastReportedRatio = ratio;
+      onProgress({ ratio, timeSec, duration: effectiveDuration });
+    }
+  };
+
+  setActiveCallbacks(customLogWrapper, customProgressWrapper);
 
   // Sanitize input extension safely
   const rawExt = (file.name && file.name.includes('.')) 
@@ -115,7 +193,7 @@ export async function processVideo({
 
   if (preset.id === 'custom' && customSettings) {
     args.push('-crf', String(customSettings.crf || 23));
-    args.push('-preset', customSettings.preset || 'veryfast');
+    args.push('-preset', customSettings.preset || 'ultrafast');
 
     if (customSettings.scaleFilter) {
       args.push('-vf', customSettings.scaleFilter);
@@ -128,11 +206,11 @@ export async function processVideo({
     }
     // Audio
     args.push('-c:a', 'aac');
-    args.push('-b:a', customSettings.audioBitrate || '64k');
+    args.push('-b:a', customSettings.audioBitrate || '128k');
   } else {
-    // Gunakan Preset bawaan bot WA
-    args.push('-crf', String(preset.crf || 23));
-    args.push('-preset', preset.preset || 'veryfast');
+    // Gunakan Preset bawaan (Dioptimasi ultrafast untuk browser WASM tanpa penurunan kualitas)
+    args.push('-crf', String(preset.crf || 20));
+    args.push('-preset', preset.preset || 'ultrafast');
 
     if (preset.scaleFilter) {
       args.push('-vf', preset.scaleFilter);
@@ -154,6 +232,9 @@ export async function processVideo({
     }
   }
 
+  // Optimasi container browser
+  args.push('-avoid_negative_ts', 'make_zero');
+
   // Output container
   args.push(outputName);
 
@@ -163,19 +244,34 @@ export async function processVideo({
   // Eksekusi
   await instance.exec(args);
 
-  onLog(`[Engine] Eksekusi selesai. Membaca hasil kompresi...`);
-  const outputData = await instance.readFile(outputName);
+  onLog(`[Engine] Eksekusi FFmpeg selesai. Membaca hasil kompresi...`);
+  onProgress({ ratio: 0.96, text: 'Membaca hasil render...' });
+  let outputData = await instance.readFile(outputName);
 
-  // Cleanup virtual files
+  // Cleanup virtual files di WASM FS
   try {
     await instance.deleteFile(inputName);
     await instance.deleteFile(outputName);
   } catch (_) {}
 
-  const outputBlob = new Blob([outputData.buffer], { type: 'video/mp4' });
+  // Jika preset Dolby Vision (hdrsilau / hdrig / isDolbyVision), suntikkan atom dvvC & container refinery
+  if (preset.isDolbyVision || preset.id === 'hdrsilau' || preset.id === 'hdrig') {
+    try {
+      onLog(`[Dolby Vision 8.4] Menginjeksikan atom dvvC (DOVIDecoderConfigurationRecord) & Apple QuickTime brand...`);
+      onProgress({ ratio: 0.98, text: 'Menginjeksikan Dolby Vision Profile 8.4...' });
+      outputData = await patchVideoDolbyVision(outputData);
+      onLog(`[Dolby Vision 8.4] ✅ Atom Dolby Vision 8.4 & container refinery berhasil disuntikkan!`);
+    } catch (patchErr) {
+      console.warn('[DOVI INJECTION WARNING]', patchErr);
+      onLog(`[Dolby Vision 8.4] ⚠️ Injeksi Dolby Vision dilewati: ${patchErr.message}`);
+    }
+  }
+
+  onProgress({ ratio: 1.0, text: 'Selesai!' });
+
+  const outputBlob = new Blob([outputData.buffer || outputData], { type: 'video/mp4' });
   const outputUrl = URL.createObjectURL(outputBlob);
 
-  // Buat nama output yang rapi dan aman (max 30 karakter dasar nama asli)
   const baseName = (file.name || 'video')
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
@@ -190,6 +286,44 @@ export async function processVideo({
 }
 
 /**
+ * Instan Patch Dolby Vision 8.4 (Tanpa Render / 0 Detik)
+ * Khusus video yang sudah diedit (misal di CapCut / Alight Motion) dan hanya butuh metadata Silau EDR
+ */
+export async function processInstantPatch({
+  file,
+  onProgress,
+  onLog
+}) {
+  onLog(`[Instant Dolby Vision] Membaca file "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB) langsung ke memory buffer...`);
+  if (onProgress) onProgress({ ratio: 0.2, text: 'Membaca video ke memori...' });
+
+  const arrayBuffer = await file.arrayBuffer();
+  if (onProgress) onProgress({ ratio: 0.5, text: 'Menganalisis box MP4...' });
+
+  onLog(`[Instant Dolby Vision] Menganalisis container MP4 dan menyuntikkan atom dvvC Profile 8.4 HLG...`);
+  const patched = await patchVideoDolbyVision(new Uint8Array(arrayBuffer));
+  if (onProgress) onProgress({ ratio: 0.9, text: 'Menyelesaikan injeksi QuickTime...' });
+
+  onLog(`[Instant Dolby Vision] ✅ Atom DOVIDecoderConfigurationRecord (dvvC) & brand Apple QuickTime (qt  ) berhasil disuntikkan!`);
+  if (onProgress) onProgress({ ratio: 1.0, text: 'Selesai!' });
+
+  const outputBlob = new Blob([patched], { type: 'video/mp4' });
+  const outputUrl = URL.createObjectURL(outputBlob);
+
+  const baseName = (file.name || 'video')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .substring(0, 30);
+
+  return {
+    blob: outputBlob,
+    url: outputUrl,
+    size: outputBlob.size,
+    name: `${baseName}_DOLBY_VISION_SILAU_INSTANT.mp4`
+  };
+}
+
+/**
  * Ekstraksi Foto Profil WA 1:1 HD (PPHD)
  * Bisa dari file gambar atau dari frame video detik ke-1
  */
@@ -199,7 +333,9 @@ export async function processPPHD({
   onProgress,
   onLog
 }) {
-  const instance = await getFFmpegInstance(onLog, onProgress);
+  const instance = await getFFmpegInstance();
+
+  setActiveCallbacks(onLog, onProgress);
 
   const rawExt = (file.name && file.name.includes('.'))
     ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -211,13 +347,13 @@ export async function processPPHD({
   const inputName = `input_pp_${Date.now()}.${ext}`;
   const outputName = `out_pp_${Date.now()}.jpg`;
 
+  if (onProgress) onProgress({ ratio: 0.1, text: 'Memuat gambar...' });
   onLog(`[PPHD] Memproses ${isVideo ? 'frame video' : 'foto'} ke format 1080x1080 Square 1:1...`);
   await instance.writeFile(inputName, await fetchFile(file));
 
   const args = ['-y'];
 
   if (isVideo) {
-    // Ambil frame detik ke-1
     args.push('-ss', '1');
   }
 
@@ -234,6 +370,7 @@ export async function processPPHD({
   args.push(outputName);
 
   onLog(`[PPHD Command] ffmpeg ${args.join(' ')}`);
+  if (onProgress) onProgress({ ratio: 0.5, text: 'Memotong 1:1 & Menajamkan Lanczos...' });
   await instance.exec(args);
 
   const outputData = await instance.readFile(outputName);
@@ -243,7 +380,9 @@ export async function processPPHD({
     await instance.deleteFile(outputName);
   } catch (_) {}
 
-  const outputBlob = new Blob([outputData.buffer], { type: 'image/jpeg' });
+  if (onProgress) onProgress({ ratio: 1.0, text: 'Selesai!' });
+
+  const outputBlob = new Blob([outputData.buffer || outputData], { type: 'image/jpeg' });
   const outputUrl = URL.createObjectURL(outputBlob);
 
   const baseName = (file.name || 'foto')
