@@ -86,12 +86,19 @@ export async function getFFmpegInstance(onLogCallback, onProgressCallback) {
  */
 function parseTimeStringToSeconds(timeStr) {
   if (!timeStr) return 0;
-  const parts = timeStr.split(':');
+  const cleaned = timeStr.trim().replace('-', '');
+  const parts = cleaned.split(':');
   if (parts.length === 3) {
     const h = parseFloat(parts[0]) || 0;
     const m = parseFloat(parts[1]) || 0;
     const s = parseFloat(parts[2]) || 0;
     return h * 3600 + m * 60 + s;
+  } else if (parts.length === 2) {
+    const m = parseFloat(parts[0]) || 0;
+    const s = parseFloat(parts[1]) || 0;
+    return m * 60 + s;
+  } else if (parts.length === 1) {
+    return parseFloat(parts[0]) || 0;
   }
   return 0;
 }
@@ -110,48 +117,88 @@ export async function processVideo({
 }) {
   const instance = await getFFmpegInstance();
 
-  // Hitung durasi target untuk kalkulasi progress yang 100% presisi
-  const effectiveDuration = (trimRange && trimRange.end > trimRange.start)
+  // Lacak durasi video dari parameter atau dari probe FFmpeg
+  let detectedDuration = (trimRange && trimRange.end > trimRange.start)
     ? (trimRange.end - trimRange.start)
-    : (totalDuration || trimRange?.duration || 30);
+    : (totalDuration || trimRange?.duration || 0);
 
   // Pasang logger & progress tracker cerdas
-  let lastReportedRatio = 0.02;
-  onProgress({ ratio: 0.02, text: 'Memuat video ke memori WebAssembly...' });
+  let lastReportedRatio = 0.05;
+  onProgress({ ratio: 0.05, text: 'Memuat video ke memori WebAssembly...' });
 
   const customLogWrapper = (message) => {
     if (onLog) onLog(message);
+    if (typeof message !== 'string') return;
 
-    // Parse FFmpeg progress line: frame= ... fps= ... time=00:00:04.50 speed=1.8x
-    if (typeof message === 'string' && message.includes('time=')) {
-      const timeMatch = message.match(/time=(\d{2}:\d{2}:[\d\.]+)/);
+    // 1. Tangkap durasi video dari probe FFmpeg jika belum diketahui
+    if (detectedDuration <= 0 && message.includes('Duration:')) {
+      const durMatch = message.match(/Duration:\s*(\d{2}:\d{2}:[\d\.]+)/);
+      if (durMatch && durMatch[1]) {
+        const parsedDur = parseTimeStringToSeconds(durMatch[1]);
+        if (parsedDur > 0) {
+          detectedDuration = parsedDur;
+          console.log('[FFMPEG PROBE] Durasi video terdeteksi dari stream:', detectedDuration, 'detik');
+        }
+      }
+    }
+
+    // 2. Parse FFmpeg progress line: frame= ... fps= ... time=00:00:04.50 speed=1.8x
+    if (message.includes('time=') || message.includes('frame=')) {
+      const timeMatch = message.match(/time=\s*(-?[\d:\.]+)/);
+      const frameMatch = message.match(/frame=\s*(\d+)/);
       const fpsMatch = message.match(/fps=\s*([\d\.]+)/);
       const speedMatch = message.match(/speed=\s*([\d\.]+)x/);
 
+      const effectiveDuration = detectedDuration > 0 ? detectedDuration : 30;
+      let currentSec = 0;
+
       if (timeMatch && timeMatch[1]) {
-        const currentSec = parseTimeStringToSeconds(timeMatch[1]);
-        if (effectiveDuration > 0) {
-          const ratio = Math.min(0.95, Math.max(lastReportedRatio, currentSec / effectiveDuration));
-          lastReportedRatio = ratio;
-          onProgress({
-            ratio,
-            fps: fpsMatch ? fpsMatch[1] : null,
-            speed: speedMatch ? `${speedMatch[1]}x` : null,
-            timeSec: currentSec,
-            duration: effectiveDuration
-          });
-        }
+        currentSec = parseTimeStringToSeconds(timeMatch[1]);
       }
+
+      let ratio = lastReportedRatio;
+      if (currentSec > 0 && effectiveDuration > 0) {
+        ratio = Math.min(0.95, Math.max(lastReportedRatio, currentSec / effectiveDuration));
+      } else if (frameMatch && frameMatch[1]) {
+        const frameNum = parseInt(frameMatch[1], 10);
+        const estTotalFrames = effectiveDuration * 30;
+        const frameRatio = Math.min(0.92, Math.max(lastReportedRatio, frameNum / estTotalFrames));
+        ratio = Math.max(ratio, frameRatio);
+      } else {
+        ratio = Math.min(0.20, lastReportedRatio + 0.005);
+      }
+
+      lastReportedRatio = ratio;
+      const pct = Math.round(ratio * 100);
+      const fps = fpsMatch ? fpsMatch[1] : null;
+      const speed = speedMatch ? speedMatch[1] : null;
+      const frame = frameMatch ? frameMatch[1] : null;
+
+      let statusMsg = `Sedang merender video (${pct}%)...`;
+      if (frame) statusMsg = `Merender frame ${frame} (${pct}%)...`;
+      if (fps) statusMsg += ` • ${fps} FPS`;
+      if (speed) statusMsg += ` • Speed ${speed}x`;
+
+      onProgress({
+        ratio,
+        fps,
+        speed: speed ? `${speed}x` : null,
+        frame,
+        timeSec: currentSec,
+        duration: effectiveDuration,
+        text: statusMsg
+      });
     }
   };
 
   const customProgressWrapper = ({ progress, time }) => {
+    const effectiveDuration = detectedDuration > 0 ? detectedDuration : 30;
     if (typeof progress === 'number' && progress > 0 && progress <= 1) {
       const ratio = Math.min(0.95, Math.max(lastReportedRatio, progress));
       lastReportedRatio = ratio;
       onProgress({ ratio });
     } else if (typeof time === 'number' && time > 0 && effectiveDuration > 0) {
-      const timeSec = time / 1000000;
+      const timeSec = time > 100000 ? time / 1000000 : time;
       const ratio = Math.min(0.95, Math.max(lastReportedRatio, timeSec / effectiveDuration));
       lastReportedRatio = ratio;
       onProgress({ ratio, timeSec, duration: effectiveDuration });

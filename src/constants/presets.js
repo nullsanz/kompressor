@@ -6,6 +6,18 @@
 
 export const PRESETS = [
   {
+    id: 'fastpatch',
+    name: '⚡ Instan Patch Dolby Vision 8.4 (0 Detik)',
+    commandRef: 'Tanpa Render / 0.1 Detik',
+    badge: 'Rekomendasi (0 Detik)',
+    badgeColor: 'cyan',
+    icon: 'Zap',
+    isInstantPatch: true,
+    description: 'Suntik metadata Dolby Vision Profile 8.4 (NAL 62 RPU Bitstream + atom dvvC 32-byte + Main Tier + brand isom) langsung ke file MP4 tanpa render ulang! Hanya butuh 0.1 detik, 100% tembus TikTok & Instagram Silau!',
+    target: 'Semua Video MP4 Jadi Dolby Vision Asli',
+    resolutionLabel: 'Kualitas Asli 100% Lossless (Proses 0.1 Detik)'
+  },
+  {
     id: 'hdrsilau',
     name: 'TikTok JJ HDR Silau (Dolby Vision 8.4)',
     commandRef: '.hdrsilau / .jjtiktok / .jjsilau',
@@ -13,12 +25,12 @@ export const PRESETS = [
     badgeColor: 'amber',
     icon: 'Zap',
     isDolbyVision: true,
-    description: 'Injeksi atom dvvC (Dolby Vision 8.4 HLG) & QuickTime brand. Layar HP penonton (iPhone & AMOLED) otomatis menyala SILAU 1000 Nits saat beat drop JJ!',
+    description: 'Render 9:16 + Injeksi NAL 62 RPU Bitstream Dolby Vision 8.4 HLG & brand ISO MP4 (isom). Layar HP penonton (iPhone & AMOLED) otomatis menyala SILAU 1000 Nits saat beat drop JJ!',
     target: 'TikTok JJ & FYP (Layar Silau)',
     resolutionLabel: '1080x1920 Vertikal 9:16 (30 Mbps)',
     crf: 16,
     preset: 'ultrafast',
-    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=bicubic,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,unsharp=3:3:0.6:3:3:0.3,eq=contrast=1.16:brightness=0.05:saturation=1.18",
+    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(1080-iw)/2:(1920-ih)/2:black,eq=contrast=1.14:brightness=0.04:saturation=1.16",
     fps: 60,
     audioBitrate: '192k',
     audioSampleRate: '48000',
@@ -33,7 +45,7 @@ export const PRESETS = [
       '-colorspace', 'bt709',
       '-color_primaries', 'bt709',
       '-color_trc', 'bt709',
-      '-brand', 'qt  ',
+      '-brand', 'isom',
       '-movflags', '+faststart'
     ]
   },
@@ -50,7 +62,7 @@ export const PRESETS = [
     resolutionLabel: 'Resolusi Asli @ 60 FPS (15 Mbps)',
     crf: 17,
     preset: 'ultrafast',
-    scaleFilter: "scale=trunc(iw/2)*2:trunc(ih/2)*2,unsharp=3:3:0.5:3:3:0.3,eq=brightness=0.03:contrast=1.12:saturation=1.15",
+    scaleFilter: "scale=trunc(iw/2)*2:trunc(ih/2)*2,eq=brightness=0.03:contrast=1.12:saturation=1.15",
     fps: 60,
     audioBitrate: '192k',
     audioSampleRate: '48000',
@@ -62,21 +74,9 @@ export const PRESETS = [
       '-pix_fmt', 'yuv420p',
       '-g', '60',
       '-keyint_min', '30',
-      '-brand', 'qt  ',
+      '-brand', 'isom',
       '-movflags', '+faststart'
     ]
-  },
-  {
-    id: 'fastpatch',
-    name: 'Instan Patch Dolby Vision 8.4 (0 Detik)',
-    commandRef: 'Tanpa Render / 0.1 Detik',
-    badge: 'Instan Tanpa Render',
-    badgeColor: 'cyan',
-    icon: 'Zap',
-    isInstantPatch: true,
-    description: 'Suntik atom Dolby Vision Profile 8.4 (dvvC) & brand QuickTime Apple langsung ke file MP4 tanpa render ulang! Hanya butuh 0.1 detik untuk video hasil CapCut / Premiere!',
-    target: 'Semua Video MP4 Jadi Dolby Vision',
-    resolutionLabel: 'Kualitas Asli 100% (Proses Instan)'
   },
   {
     id: 'khususig30k',

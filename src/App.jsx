@@ -160,6 +160,7 @@ export default function App() {
           preset: activePreset,
           customSettings,
           trimRange,
+          totalDuration: fileMetadata?.duration || 0,
           onProgress: ({ ratio, progress, text, fps, speed }) => {
             const currentRatio = typeof ratio === 'number' ? ratio : (typeof progress === 'number' ? progress : 0);
             if (currentRatio >= 0 && currentRatio <= 1) {
