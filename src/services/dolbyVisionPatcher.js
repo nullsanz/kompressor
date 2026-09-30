@@ -4,7 +4,8 @@
  * Menginjeksikan NAL Unit Type 62 (Dolby Vision RPU) ke setiap frame bitstream HEVC,
  * atom Dolby Vision `dvvC` (32-byte Profile 8.4 BL+RPU HLG Compatible),
  * memvalidasi Main Tier (tierFlag: 0), menormalisasi brand ISO MP4 (`isom`),
- * dan memperbaiki durasi container `mvhd`.
+ * memperbaiki durasi container `mvhd`, dan MEMPERTAHANKAN 100% TRACK AUDIO
+ * melalui algoritma Multi-Track Chunk Interleaving.
  *
  * 100% Identik dengan spesifikasi video Wanxzyy / Rein yang tembus TikTok tanpa re-encode.
  * Bekerja 100% native di browser via Uint8Array & DataView tanpa dependency eksternal.
@@ -52,12 +53,12 @@ function find4CC(u8, fourCC, from = 0) {
 }
 
 /**
- * Patch video HEVC MP4 secara komprehensif:
+ * Patch video HEVC MP4 secara komprehensif (Multi-Track Aware):
  * 1. Sisipkan NAL Unit Type 62 (Dolby Vision RPU) ke setiap frame video bitstream
  * 2. Pasang box dvvC 32-byte pada visual sample entry hvc1
  * 3. Kunci HEVC profile tier ke 0 (Main Tier)
  * 4. Normalisasi ftyp ke major_brand 'isom' dengan compatible brands isom, iso2, hvc1, mp41
- * 5. Rekalkulasi tabel stsz dan stco/co64
+ * 5. Rekalkulasi tabel stsz dan stco/co64 untuk SELURUH track (video & audio terjaga 100%)
  * 6. Perbaiki durasi container mvhd yang korup (-1)
  *
  * @param {Uint8Array|ArrayBuffer} inputBytes
@@ -70,185 +71,136 @@ export function injectDolbyVisionBitstreamAndContainer(inputBytes) {
   const moovIdx = find4CC(u8, 'moov');
   const mdatIdx = find4CC(u8, 'mdat');
   if (moovIdx === -1 || mdatIdx === -1) {
-    console.warn('[DOVI-PATCHER] moov atau mdat tidak ditemukan');
     return u8;
   }
 
-  // Cari video track (trak dengan handler 'vide')
-  let trakPos = find4CC(u8, 'trak', moovIdx);
-  let videoTrakIdx = -1;
   const moovSize = view.getUint32(moovIdx - 4, false);
   const moovEnd = (moovIdx - 4) + moovSize;
 
+  // 1. Temukan seluruh track dalam moov (video, audio, dll)
+  let trakPos = find4CC(u8, 'trak', moovIdx);
+  const tracks = [];
+
   while (trakPos !== -1 && trakPos < moovEnd) {
+    const trakSize = view.getUint32(trakPos - 4, false);
+    const trakEnd = (trakPos - 4) + trakSize;
+
     const hdlrIdx = find4CC(u8, 'hdlr', trakPos);
-    if (hdlrIdx !== -1) {
-      const isVide = u8[hdlrIdx + 12] === 0x76 && u8[hdlrIdx + 13] === 0x69 &&
-                     u8[hdlrIdx + 14] === 0x64 && u8[hdlrIdx + 15] === 0x65;
-      if (isVide) {
-        videoTrakIdx = trakPos;
-        break;
-      }
+    let handler = 'unknown';
+    if (hdlrIdx !== -1 && hdlrIdx < trakEnd) {
+      handler = String.fromCharCode(u8[hdlrIdx + 12], u8[hdlrIdx + 13], u8[hdlrIdx + 14], u8[hdlrIdx + 15]);
     }
+
+    const stblIdx = find4CC(u8, 'stbl', trakPos);
+    if (stblIdx !== -1 && stblIdx < trakEnd) {
+      // stsz
+      const stszIdx = find4CC(u8, 'stsz', stblIdx);
+      let sampleSizes = [];
+      let sampleCount = 0;
+      if (stszIdx !== -1) {
+        sampleCount = view.getUint32(stszIdx + 12, false);
+        for (let i = 0; i < sampleCount; i++) {
+          sampleSizes.push(view.getUint32(stszIdx + 16 + i * 4, false));
+        }
+      }
+
+      // stsc
+      const stscIdx = find4CC(u8, 'stsc', stblIdx);
+      const stscEntries = [];
+      if (stscIdx !== -1) {
+        const count = view.getUint32(stscIdx + 8, false);
+        for (let i = 0; i < count; i++) {
+          stscEntries.push({
+            firstChunk: view.getUint32(stscIdx + 12 + i * 12, false),
+            samplesPerChunk: view.getUint32(stscIdx + 16 + i * 12, false),
+            sampleDescIndex: view.getUint32(stscIdx + 20 + i * 12, false)
+          });
+        }
+      }
+
+      // stco / co64
+      let is64Bit = false;
+      let chunkOffsets = [];
+      const stcoIdx = find4CC(u8, 'stco', stblIdx);
+      if (stcoIdx !== -1) {
+        const count = view.getUint32(stcoIdx + 8, false);
+        for (let i = 0; i < count; i++) {
+          chunkOffsets.push(view.getUint32(stcoIdx + 12 + i * 4, false));
+        }
+      } else {
+        const co64Idx = find4CC(u8, 'co64', stblIdx);
+        if (co64Idx !== -1) {
+          is64Bit = true;
+          const count = view.getUint32(co64Idx + 8, false);
+          for (let i = 0; i < count; i++) {
+            chunkOffsets.push(Number(view.getBigUint64(co64Idx + 12 + i * 8, false)));
+          }
+        }
+      }
+
+      // Map samples ke chunks
+      let currentChunk = 1;
+      let currentChunkSampleIndex = 0;
+      let stscIdxPtr = 0;
+      const chunkToSamples = Array.from({ length: chunkOffsets.length }, () => []);
+
+      for (let s = 0; s < sampleCount; s++) {
+        while (stscIdxPtr + 1 < stscEntries.length && currentChunk >= stscEntries[stscIdxPtr + 1].firstChunk) {
+          stscIdxPtr++;
+        }
+        const samplesInThisChunk = stscEntries[stscIdxPtr] ? stscEntries[stscIdxPtr].samplesPerChunk : 1;
+        if (currentChunk - 1 < chunkOffsets.length) {
+          chunkToSamples[currentChunk - 1].push(s);
+        }
+
+        currentChunkSampleIndex++;
+        if (currentChunkSampleIndex >= samplesInThisChunk) {
+          currentChunk++;
+          currentChunkSampleIndex = 0;
+        }
+      }
+
+      tracks.push({
+        trackIndex: tracks.length,
+        trakPos,
+        handler,
+        sampleSizes,
+        sampleCount,
+        is64Bit,
+        chunkOffsets,
+        chunkToSamples
+      });
+    }
+
     trakPos = find4CC(u8, 'trak', trakPos + 4);
   }
 
-  if (videoTrakIdx === -1) {
-    console.warn('[DOVI-PATCHER] Video track tidak ditemukan');
-    return u8;
-  }
-
-  const mdiaIdx = find4CC(u8, 'mdia', videoTrakIdx);
-  const minfIdx = find4CC(u8, 'minf', mdiaIdx);
-  const stblIdx = find4CC(u8, 'stbl', minfIdx);
-
-  // Ambil stsz (sample sizes)
-  const stszIdx = find4CC(u8, 'stsz', stblIdx);
-  if (stszIdx === -1) return u8;
-  const sampleCount = view.getUint32(stszIdx + 12, false);
-  const sampleSizes = [];
-  for (let i = 0; i < sampleCount; i++) {
-    sampleSizes.push(view.getUint32(stszIdx + 16 + i * 4, false));
-  }
-
-  // Ambil stco / co64 (chunk offsets)
-  let is64Bit = false;
-  let stcoTablePos = -1;
-  let stcoEntryCount = 0;
-  let chunkOffsets = [];
-
-  const stcoIdx = find4CC(u8, 'stco', stblIdx);
-  if (stcoIdx !== -1) {
-    stcoTablePos = stcoIdx + 12;
-    stcoEntryCount = view.getUint32(stcoIdx + 8, false);
-    for (let i = 0; i < stcoEntryCount; i++) {
-      chunkOffsets.push(view.getUint32(stcoTablePos + i * 4, false));
-    }
-  } else {
-    const co64Idx = find4CC(u8, 'co64', stblIdx);
-    if (co64Idx === -1) return u8;
-    is64Bit = true;
-    stcoTablePos = co64Idx + 12;
-    stcoEntryCount = view.getUint32(co64Idx + 8, false);
-    for (let i = 0; i < stcoEntryCount; i++) {
-      chunkOffsets.push(Number(view.getBigUint64(stcoTablePos + i * 8, false)));
-    }
-  }
+  const videoTrack = tracks.find(t => t.handler === 'vide');
+  if (!videoTrack) return u8;
 
   // Cek apakah RPU NAL 62 sudah terpasang
-  const firstSamplePos = chunkOffsets[0];
+  const firstSamplePos = videoTrack.chunkOffsets[0];
   let alreadyHasRpu = false;
-  for (let i = firstSamplePos; i < firstSamplePos + Math.min(60, sampleSizes[0]); i++) {
+  for (let i = firstSamplePos; i < firstSamplePos + Math.min(60, videoTrack.sampleSizes[0]); i++) {
     if (u8[i] === 0x7c && u8[i + 1] === 0x01 && u8[i + 2] === 0x19 && u8[i + 3] === 0x08) {
       alreadyHasRpu = true;
       break;
     }
   }
 
-  let newSampleSizes = [...sampleSizes];
-  let newChunkOffsets = [...chunkOffsets];
-  let newMdatPayload = null;
-  const expansionPerSample = RPU_PACKET.length;
-
-  if (!alreadyHasRpu) {
-    console.log(`[DOVI-PATCHER] Menyuntikkan NAL Unit Type 62 Dolby Vision RPU ke ${sampleCount} frame...`);
-
-    // Parse stsc untuk mapping sample -> chunk
-    const stscIdx = find4CC(u8, 'stsc', stblIdx);
-    const stscCount = view.getUint32(stscIdx + 8, false);
-    const stscEntries = [];
-    for (let i = 0; i < stscCount; i++) {
-      stscEntries.push({
-        firstChunk: view.getUint32(stscIdx + 12 + i * 12, false),
-        samplesPerChunk: view.getUint32(stscIdx + 16 + i * 12, false),
-        sampleDescIndex: view.getUint32(stscIdx + 20 + i * 12, false)
-      });
-    }
-
-    let currentChunk = 1;
-    let currentChunkSampleIndex = 0;
-    let stscIdxPtr = 0;
-    const chunkToSamples = Array.from({ length: stcoEntryCount }, () => []);
-
-    for (let s = 0; s < sampleCount; s++) {
-      while (stscIdxPtr + 1 < stscEntries.length && currentChunk >= stscEntries[stscIdxPtr + 1].firstChunk) {
-        stscIdxPtr++;
-      }
-      const samplesInThisChunk = stscEntries[stscIdxPtr].samplesPerChunk;
-      chunkToSamples[currentChunk - 1].push(s);
-
-      currentChunkSampleIndex++;
-      if (currentChunkSampleIndex >= samplesInThisChunk) {
-        currentChunk++;
-        currentChunkSampleIndex = 0;
-      }
-    }
-
-    // Bangun payload mdat baru
-    const totalNewMdatSize = (u8.length - (mdatIdx + 4)) + (sampleCount * expansionPerSample);
-    newMdatPayload = new Uint8Array(totalNewMdatSize);
-    let payloadWritePos = 0;
-
-    newChunkOffsets = [];
-    let currentOffset = chunkOffsets[0];
-
-    for (let c = 0; c < stcoEntryCount; c++) {
-      newChunkOffsets.push(currentOffset);
-      const chunkSampleIndices = chunkToSamples[c];
-      let oldChunkPos = chunkOffsets[c];
-
-      for (const sIdx of chunkSampleIndices) {
-        const oldSampleSize = sampleSizes[sIdx];
-        newMdatPayload.set(RPU_PACKET, payloadWritePos);
-        payloadWritePos += expansionPerSample;
-
-        newMdatPayload.set(u8.subarray(oldChunkPos, oldChunkPos + oldSampleSize), payloadWritePos);
-        payloadWritePos += oldSampleSize;
-
-        newSampleSizes[sIdx] = oldSampleSize + expansionPerSample;
-        oldChunkPos += oldSampleSize;
-      }
-
-      currentOffset += (oldChunkPos - chunkOffsets[c]) + (chunkSampleIndices.length * expansionPerSample);
-    }
-  }
-
-  // Rekonstruksi Header MP4
+  // 2. Siapkan MP4 Header Part (sebelum mdat) dan mutasikan box dvvC terlebih dahulu
   let headerPart = new Uint8Array(u8.subarray(0, mdatIdx - 4));
   let hView = new DataView(headerPart.buffer, headerPart.byteOffset, headerPart.byteLength);
 
-  // 1. Update stsz jika ada ekspansi
-  if (!alreadyHasRpu) {
-    const stszInHeader = find4CC(headerPart, 'stsz', stblIdx);
-    for (let i = 0; i < sampleCount; i++) {
-      hView.setUint32(stszInHeader + 16 + i * 4, newSampleSizes[i], false);
-    }
-  }
-
-  // 2. Update stco / co64
-  if (!alreadyHasRpu) {
-    if (!is64Bit) {
-      const stcoInHeader = find4CC(headerPart, 'stco', stblIdx);
-      for (let i = 0; i < stcoEntryCount; i++) {
-        hView.setUint32(stcoInHeader + 12 + i * 4, newChunkOffsets[i], false);
-      }
-    } else {
-      const co64InHeader = find4CC(headerPart, 'co64', stblIdx);
-      for (let i = 0; i < stcoEntryCount; i++) {
-        hView.setBigUint64(co64InHeader + 12 + i * 8, BigInt(newChunkOffsets[i]), false);
-      }
-    }
-  }
-
-  // 3. Kunci HEVC tierFlag ke 0 (Main Tier) pada sub-box hvcC
-  const hvcCInHeader = find4CC(headerPart, 'hvcC', stblIdx);
+  // Kunci Main Tier (tierFlag = 0)
+  const vTrakInHeader = find4CC(headerPart, 'trak', find4CC(headerPart, 'moov'));
+  const hvcCInHeader = find4CC(headerPart, 'hvcC', vTrakInHeader);
   if (hvcCInHeader !== -1) {
-    headerPart[hvcCInHeader + 5] = (headerPart[hvcCInHeader + 5] & 0xDF); // clear bit 5 (tierFlag = 0)
-    console.log('[DOVI-PATCHER] HEVC Profile terkunci ke Main Tier (tierFlag: 0)!');
+    headerPart[hvcCInHeader + 5] = (headerPart[hvcCInHeader + 5] & 0xDF);
   }
 
-  // 4. Update atau sisipkan dvvC 32-byte
-  const dvvCInHeader = find4CC(headerPart, 'dvvC', stblIdx);
+  // Update atau sisipkan box dvvC 32-byte
+  const dvvCInHeader = find4CC(headerPart, 'dvvC', vTrakInHeader);
   if (dvvCInHeader !== -1) {
     const oldDvvCSize = hView.getUint32(dvvCInHeader - 4, false);
     if (oldDvvCSize === 24) {
@@ -264,15 +216,13 @@ export function injectDolbyVisionBitstreamAndContainer(inputBytes) {
 
       const delta = 8;
       ['hvc1', 'stsd', 'stbl', 'minf', 'mdia', 'trak', 'moov'].forEach(tag => {
-        const p = find4CC(headerPart, tag);
-        if (p !== -1) {
+        let p = find4CC(headerPart, tag);
+        while (p !== -1 && p < (dvvCStart + 100)) {
           const sz = hView.getUint32(p - 4, false);
           hView.setUint32(p - 4, sz + delta, false);
+          p = find4CC(headerPart, tag, p + 4);
         }
       });
-      for (let i = 0; i < stcoEntryCount; i++) {
-        newChunkOffsets[i] += delta;
-      }
     }
   } else if (hvcCInHeader !== -1) {
     const hvcCSize = hView.getUint32(hvcCInHeader - 4, false);
@@ -288,24 +238,19 @@ export function injectDolbyVisionBitstreamAndContainer(inputBytes) {
 
     const delta = DVVC_32_BOX.length;
     ['hvc1', 'stsd', 'stbl', 'minf', 'mdia', 'trak', 'moov'].forEach(tag => {
-      const p = find4CC(headerPart, tag);
-      if (p !== -1) {
+      let p = find4CC(headerPart, tag);
+      while (p !== -1 && p < (insertPos + 100)) {
         const sz = hView.getUint32(p - 4, false);
         hView.setUint32(p - 4, sz + delta, false);
+        p = find4CC(headerPart, tag, p + 4);
       }
     });
-    for (let i = 0; i < stcoEntryCount; i++) {
-      newChunkOffsets[i] += delta;
-    }
   }
 
-  // 5. Update ftyp ke major_brand 'isom' dan compatible brands: isom, iso2, hvc1, mp41
+  // Update ftyp ke isom / iso2 / hvc1 / mp41
   const ftypInHeader = find4CC(headerPart, 'ftyp');
   if (ftypInHeader !== -1 && ftypInHeader <= 8) {
-    headerPart[ftypInHeader + 4] = 0x69; // 'i'
-    headerPart[ftypInHeader + 5] = 0x73; // 's'
-    headerPart[ftypInHeader + 6] = 0x6f; // 'o'
-    headerPart[ftypInHeader + 7] = 0x6d; // 'm'
+    headerPart[ftypInHeader + 4] = 0x69; headerPart[ftypInHeader + 5] = 0x73; headerPart[ftypInHeader + 6] = 0x6f; headerPart[ftypInHeader + 7] = 0x6d;
     hView.setUint32(ftypInHeader + 8, 512, false);
     if (headerPart.length >= ftypInHeader + 28) {
       headerPart[ftypInHeader + 12] = 0x69; headerPart[ftypInHeader + 13] = 0x73; headerPart[ftypInHeader + 14] = 0x6f; headerPart[ftypInHeader + 15] = 0x6d;
@@ -315,52 +260,146 @@ export function injectDolbyVisionBitstreamAndContainer(inputBytes) {
     }
   }
 
-  // 6. Normalisasi durasi container mvhd jika -1 atau korup
+  // Normalisasi durasi container mvhd
   const mvhdInHeader = find4CC(headerPart, 'mvhd');
   if (mvhdInHeader !== -1) {
     const ver = headerPart[mvhdInHeader + 4];
     if (ver === 1) {
       const dur = hView.getBigUint64(mvhdInHeader + 28, false);
       if (dur === 0xFFFFFFFFFFFFFFFFn || dur > 1000000000n) {
-        const mdhdInHeader = find4CC(headerPart, 'mdhd', videoTrakIdx);
+        const mdhdInHeader = find4CC(headerPart, 'mdhd', vTrakInHeader);
         if (mdhdInHeader !== -1) {
           const ts = hView.getUint32(mdhdInHeader + 16, false);
           const mdDur = hView.getUint32(mdhdInHeader + 20, false);
           const mvTs = hView.getUint32(mvhdInHeader + 24, false);
           const finalMvDur = BigInt(Math.round((mdDur / ts) * mvTs));
           hView.setBigUint64(mvhdInHeader + 28, finalMvDur, false);
-          console.log(`[DOVI-PATCHER] Durasi mvhd dinormalisasi: ${finalMvDur} (ts: ${mvTs})`);
         }
       }
     }
   }
 
-  // Gabungkan payload mdat baru jika ada ekspansi RPU
-  if (!alreadyHasRpu && newMdatPayload) {
-    const mdatBoxHeader = new Uint8Array(8);
-    const mdatView = new DataView(mdatBoxHeader.buffer);
-    mdatView.setUint32(0, newMdatPayload.length + 8, false);
-    mdatBoxHeader[4] = 0x6d; // 'm'
-    mdatBoxHeader[5] = 0x64; // 'd'
-    mdatBoxHeader[6] = 0x61; // 'a'
-    mdatBoxHeader[7] = 0x74; // 't'
-
-    const finalResult = new Uint8Array(headerPart.length + 8 + newMdatPayload.length);
-    finalResult.set(headerPart, 0);
-    finalResult.set(mdatBoxHeader, headerPart.length);
-    finalResult.set(newMdatPayload, headerPart.length + 8);
-    return finalResult;
-  } else {
-    const remainingMdat = u8.subarray(mdatIdx - 4);
-    const finalResult = new Uint8Array(headerPart.length + remainingMdat.length);
-    finalResult.set(headerPart, 0);
-    finalResult.set(remainingMdat, headerPart.length);
-    return finalResult;
+  // 3. Rekonstruksi mdat: Kumpulkan SELURUH CHUNK secara kronologis lintas track (Interleaved)
+  const allChunks = [];
+  for (let tIdx = 0; tIdx < tracks.length; tIdx++) {
+    const t = tracks[tIdx];
+    for (let cIdx = 0; cIdx < t.chunkOffsets.length; cIdx++) {
+      allChunks.push({
+        trackIdx: tIdx,
+        chunkIdx: cIdx,
+        oldOffset: t.chunkOffsets[cIdx],
+        sampleIndices: t.chunkToSamples[cIdx],
+        isVideo: t.handler === 'vide'
+      });
+    }
   }
+
+  allChunks.sort((a, b) => a.oldOffset - b.oldOffset);
+
+  // Posisi awal mdat payload:
+  let currentOffset = headerPart.length + 8;
+
+  // Hitung ukuran total mdat payload baru secara presisi
+  const expansionPerSample = RPU_PACKET.length;
+  let totalNewMdatSize = 0;
+  for (const chunk of allChunks) {
+    const t = tracks[chunk.trackIdx];
+    for (const sIdx of chunk.sampleIndices) {
+      totalNewMdatSize += t.sampleSizes[sIdx];
+      if (chunk.isVideo && !alreadyHasRpu) {
+        totalNewMdatSize += expansionPerSample;
+      }
+    }
+  }
+
+  const newMdatPayload = new Uint8Array(totalNewMdatSize);
+  let payloadWritePos = 0;
+
+  const newChunkOffsetsPerTrack = tracks.map(t => new Array(t.chunkOffsets.length));
+  const newVideoSampleSizes = [...videoTrack.sampleSizes];
+
+  for (const chunk of allChunks) {
+    newChunkOffsetsPerTrack[chunk.trackIdx][chunk.chunkIdx] = currentOffset;
+    const t = tracks[chunk.trackIdx];
+
+    if (chunk.isVideo && !alreadyHasRpu) {
+      let oldPos = chunk.oldOffset;
+      for (const sIdx of chunk.sampleIndices) {
+        const sSize = t.sampleSizes[sIdx];
+        newMdatPayload.set(RPU_PACKET, payloadWritePos);
+        payloadWritePos += expansionPerSample;
+
+        newMdatPayload.set(u8.subarray(oldPos, oldPos + sSize), payloadWritePos);
+        payloadWritePos += sSize;
+
+        newVideoSampleSizes[sIdx] = sSize + expansionPerSample;
+        oldPos += sSize;
+      }
+      currentOffset += (oldPos - chunk.oldOffset) + (chunk.sampleIndices.length * expansionPerSample);
+    } else {
+      let chunkSize = 0;
+      for (const sIdx of chunk.sampleIndices) {
+        chunkSize += t.sampleSizes[sIdx];
+      }
+      newMdatPayload.set(u8.subarray(chunk.oldOffset, chunk.oldOffset + chunkSize), payloadWritePos);
+      payloadWritePos += chunkSize;
+      currentOffset += chunkSize;
+    }
+  }
+
+  // 4. Perbarui tabel stsz dan stco/co64 di Header Part
+  let freshTrakPos = find4CC(headerPart, 'trak');
+  for (let tIdx = 0; tIdx < tracks.length; tIdx++) {
+    const t = tracks[tIdx];
+    const stblPos = find4CC(headerPart, 'stbl', freshTrakPos);
+    const newOffsets = newChunkOffsetsPerTrack[tIdx];
+
+    // Track Video: Perbarui ukuran sample (stsz)
+    if (t.handler === 'vide' && !alreadyHasRpu) {
+      const stszPos = find4CC(headerPart, 'stsz', stblPos);
+      if (stszPos !== -1) {
+        for (let i = 0; i < t.sampleCount; i++) {
+          hView.setUint32(stszPos + 16 + i * 4, newVideoSampleSizes[i], false);
+        }
+      }
+    }
+
+    // Seluruh Track (Video & Audio): Perbarui chunk offset (stco / co64)
+    if (!t.is64Bit) {
+      const stcoPos = find4CC(headerPart, 'stco', stblPos);
+      if (stcoPos !== -1) {
+        for (let i = 0; i < newOffsets.length; i++) {
+          hView.setUint32(stcoPos + 12 + i * 4, newOffsets[i], false);
+        }
+      }
+    } else {
+      const co64Pos = find4CC(headerPart, 'co64', stblPos);
+      if (co64Pos !== -1) {
+        for (let i = 0; i < newOffsets.length; i++) {
+          hView.setBigUint64(co64Pos + 12 + i * 8, BigInt(newOffsets[i]), false);
+        }
+      }
+    }
+
+    freshTrakPos = find4CC(headerPart, 'trak', freshTrakPos + 4);
+  }
+
+  // 5. Rakit binary MP4 final
+  const mdatHeader = new Uint8Array(8);
+  const mdatView = new DataView(mdatHeader.buffer);
+  mdatView.setUint32(0, newMdatPayload.length + 8, false);
+  mdatHeader[4] = 0x6d; mdatHeader[5] = 0x64; mdatHeader[6] = 0x61; mdatHeader[7] = 0x74;
+
+  const finalResult = new Uint8Array(headerPart.length + 8 + newMdatPayload.length);
+  finalResult.set(headerPart, 0);
+  finalResult.set(mdatHeader, headerPart.length);
+  finalResult.set(newMdatPayload, headerPart.length + 8);
+
+  return finalResult;
 }
 
 /**
- * Patch video lengkap: Injeksi Dolby Vision Profile 8.4 Bitstream RPU + Wanxzyy Spec
+ * Patch video lengkap: Injeksi Dolby Vision Profile 8.4 Bitstream RPU + Wanxzyy Spec (Multi-Track Preserved)
  *
  * @param {Uint8Array|ArrayBuffer} inputBytes
  * @returns {Promise<Uint8Array>}
