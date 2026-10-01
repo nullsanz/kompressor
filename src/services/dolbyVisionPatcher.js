@@ -129,6 +129,133 @@ function insertDvvCBoxProperlyBrowser(inputBytes) {
   return newBuf;
 }
 
+/**
+ * Menormalisasi durasi container MP4 (mvhd & tkhd) ke durasi track riil terpanjang.
+ * Mencegah bug Wanxzyy Patcher yang menulis mvhd version 1 dengan durasi
+ * 0xFFFFFFFFFFFFFFFF (512 juta jam), yang menyebabkan Windows Explorer menampilkan
+ * Length abnormal (512409557:36:10) dan gagal me-render thumbnail video.
+ */
+export function normalizeContainerDurationBrowser(inputBytes) {
+  const u8 = inputBytes instanceof Uint8Array ? inputBytes : new Uint8Array(inputBytes);
+  const view = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+
+  const moovPos = find4CC(u8, 'moov');
+  if (moovPos === -1) return u8;
+  const moovStart = moovPos - 4;
+  const moovSize = view.getUint32(moovStart, false);
+  const moovEnd = moovStart + moovSize;
+
+  const mvhdPos = find4CC(u8, 'mvhd', moovStart, moovEnd);
+  if (mvhdPos === -1 || mvhdPos > moovEnd) return u8;
+  const mvhdStart = mvhdPos - 4;
+  const mvhdVer = u8[mvhdStart + 8];
+  const mvhdTimescale = mvhdVer === 1 ? view.getUint32(mvhdStart + 28, false) : view.getUint32(mvhdStart + 20, false);
+  const mvhdDurOffset = mvhdVer === 1 ? mvhdStart + 32 : mvhdStart + 24;
+
+  let maxTrackDuration = 0;
+  let curTrakPos = find4CC(u8, 'trak', moovStart, moovEnd);
+
+  while (curTrakPos !== -1 && curTrakPos < moovEnd) {
+    const trakStart = curTrakPos - 4;
+    const trakSize = view.getUint32(trakStart, false);
+    const trakEnd = trakStart + trakSize;
+
+    let trakDuration = 0;
+    const tkhdPos = find4CC(u8, 'tkhd', trakStart, trakEnd);
+    let tkhdVer = 0;
+    let tkhdDurOffset = 0;
+
+    if (tkhdPos !== -1 && tkhdPos < trakEnd) {
+      const tkhdStart = tkhdPos - 4;
+      tkhdVer = u8[tkhdStart + 8];
+      tkhdDurOffset = tkhdVer === 1 ? tkhdStart + 36 : tkhdStart + 28;
+      if (tkhdVer === 1) {
+        const durHi = view.getUint32(tkhdStart + 36, false);
+        if (durHi !== 0xFFFFFFFF && durHi < 0x10000) {
+          trakDuration = Number(view.getBigUint64(tkhdStart + 36, false));
+        }
+      } else {
+        const dur = view.getUint32(tkhdStart + 28, false);
+        if (dur !== 0xFFFFFFFF && dur < 0x7FFFFFFF) {
+          trakDuration = dur;
+        }
+      }
+    }
+
+    // Check mdhd (mdia -> mdhd)
+    const mdhdPos = find4CC(u8, 'mdhd', trakStart, trakEnd);
+    if (mdhdPos !== -1 && mdhdPos < trakEnd) {
+      const mdhdStart = mdhdPos - 4;
+      const mdhdVer = u8[mdhdStart + 8];
+      const mdTimescale = mdhdVer === 1 ? view.getUint32(mdhdStart + 28, false) : view.getUint32(mdhdStart + 20, false);
+      let mdDur = 0;
+      if (mdhdVer === 1) {
+        const durHi = view.getUint32(mdhdStart + 32, false);
+        if (durHi !== 0xFFFFFFFF && durHi < 0x10000) {
+          mdDur = Number(view.getBigUint64(mdhdStart + 32, false));
+        }
+      } else {
+        const dur = view.getUint32(mdhdStart + 24, false);
+        if (dur !== 0xFFFFFFFF && dur < 0x7FFFFFFF) {
+          mdDur = dur;
+        }
+      }
+      if (mdTimescale > 0 && mdDur > 0) {
+        const converted = Math.round((mdDur / mdTimescale) * mvhdTimescale);
+        if (converted > trakDuration) {
+          trakDuration = converted;
+        }
+      }
+    }
+
+    if (tkhdDurOffset > 0 && trakDuration > 0) {
+      if (tkhdVer === 1) {
+        const curTkhdDur = view.getBigUint64(tkhdDurOffset, false);
+        if (curTkhdDur > BigInt(mvhdTimescale * 86400 * 100) || curTkhdDur === 0n) {
+          view.setBigUint64(tkhdDurOffset, BigInt(trakDuration), false);
+        }
+      } else {
+        const curTkhdDur = view.getUint32(tkhdDurOffset, false);
+        if (curTkhdDur > mvhdTimescale * 86400 * 100 || curTkhdDur === 0) {
+          view.setUint32(tkhdDurOffset, trakDuration, false);
+        }
+      }
+    }
+
+    if (trakDuration > maxTrackDuration) {
+      maxTrackDuration = trakDuration;
+    }
+
+    curTrakPos = find4CC(u8, 'trak', curTrakPos + 4, moovEnd);
+  }
+
+  let needsFix = false;
+  if (mvhdVer === 1) {
+    const curDurHi = view.getUint32(mvhdDurOffset, false);
+    if (curDurHi === 0xFFFFFFFF) needsFix = true;
+    const curDur = view.getBigUint64(mvhdDurOffset, false);
+    if (curDur > BigInt(mvhdTimescale * 86400 * 100) || (curDur === 0n && maxTrackDuration > 0)) {
+      needsFix = true;
+    }
+  } else {
+    const curDur = view.getUint32(mvhdDurOffset, false);
+    if (curDur === 0xFFFFFFFF || curDur > mvhdTimescale * 86400 * 100 || (curDur === 0 && maxTrackDuration > 0)) {
+      needsFix = true;
+    }
+  }
+
+  if (needsFix && maxTrackDuration > 0) {
+    console.log(`[CONTAINER-REFINERY] Normalizing abnormal mvhd duration to ${maxTrackDuration} (timescale: ${mvhdTimescale}, ${(maxTrackDuration / mvhdTimescale).toFixed(2)}s)`);
+    if (mvhdVer === 1) {
+      view.setBigUint64(mvhdDurOffset, BigInt(maxTrackDuration), false);
+    } else {
+      view.setUint32(mvhdDurOffset, maxTrackDuration, false);
+    }
+  }
+
+  return u8;
+}
+
 export function patchVideoDolbyVision(inputBytes) {
   let preparedBytes = inputBytes;
   try {
@@ -139,27 +266,36 @@ export function patchVideoDolbyVision(inputBytes) {
   }
 
   const patcher = globalThis.WanxzyyMp4Patcher || globalThis.ReinMp4Patcher;
-  if (!patcher || !patcher.patchWithReport) {
-    console.warn('[WANXZYY-PATCHER] Patcher engine not available');
-    return preparedBytes;
-  }
+  let finalBytes = preparedBytes;
 
-  try {
-    const report = patcher.patchWithReport(preparedBytes);
-    if (report && report.bytes && report.bytes.length > 0) {
-      console.log('[WANXZYY-PATCHER] Patch report:', report.report);
-      return report.bytes;
+  if (patcher && patcher.patchWithReport) {
+    try {
+      const report = patcher.patchWithReport(preparedBytes);
+      if (report && report.bytes && report.bytes.length > 0) {
+        console.log('[WANXZYY-PATCHER] Patch report:', report.report);
+        finalBytes = report.bytes;
+      }
+    } catch (err) {
+      console.warn('[WANXZYY-PATCHER] Patch failed:', err.message);
     }
-  } catch (err) {
-    console.warn('[WANXZYY-PATCHER] Patch failed:', err.message);
+  } else {
+    console.warn('[WANXZYY-PATCHER] Patcher engine not available');
   }
 
-  return preparedBytes;
+  // Normalisasi durasi container mvhd & tkhd agar terbebas dari bug 512 juta jam dan thumbnail Explorer muncul
+  try {
+    finalBytes = normalizeContainerDurationBrowser(finalBytes);
+  } catch (err) {
+    console.warn('[CONTAINER-REFINERY] Gagal menormalisasi durasi mvhd:', err.message);
+  }
+
+  return finalBytes;
 }
 
 export const injectDolbyVisionBitstreamAndContainer = patchVideoDolbyVision;
 
 export default {
   patchVideoDolbyVision,
-  injectDolbyVisionBitstreamAndContainer
+  injectDolbyVisionBitstreamAndContainer,
+  normalizeContainerDurationBrowser
 };
