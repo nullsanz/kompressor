@@ -44,7 +44,7 @@ export const PRESETS = [
       '-keyint_min', '30',
       '-colorspace', 'bt709',
       '-color_primaries', 'bt709',
-      '-color_trc', 'bt709',
+      '-color_trc', 'arib-std-b67',
       '-brand', 'isom',
       '-movflags', '+faststart'
     ]
@@ -74,6 +74,9 @@ export const PRESETS = [
       '-pix_fmt', 'yuv420p',
       '-g', '60',
       '-keyint_min', '30',
+      '-colorspace', 'bt709',
+      '-color_primaries', 'bt709',
+      '-color_trc', 'arib-std-b67',
       '-brand', 'isom',
       '-movflags', '+faststart'
     ]
