@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2, Zap } from 'lucide-react';
+import { detectMp4Codec } from '../services/hevcBitstreamPatcher';
 
 export default function FileDropzone({ selectedFile, fileMetadata, onFileSelected, onClearFile }) {
   const fileInputRef = useRef(null);
@@ -34,7 +35,13 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       tempVideo.preload = 'metadata';
       tempVideo.src = url;
 
-      tempVideo.onloadedmetadata = () => {
+      tempVideo.onloadedmetadata = async () => {
+        let codecInfo = { isHevc: false, codec: 'MP4 Video' };
+        try {
+          const sliceBuf = await file.slice(0, 131072).arrayBuffer();
+          codecInfo = detectMp4Codec(new Uint8Array(sliceBuf));
+        } catch (_) {}
+
         const metadata = {
           type: 'video',
           duration: tempVideo.duration || 0,
@@ -45,11 +52,19 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
             : '1.78',
           size: file.size,
           previewUrl: url,
+          isHevc: codecInfo.isHevc,
+          codec: codecInfo.codec
         };
         onFileSelected(file, metadata);
       };
 
-      tempVideo.onerror = () => {
+      tempVideo.onerror = async () => {
+        let codecInfo = { isHevc: false, codec: 'MP4 Video' };
+        try {
+          const sliceBuf = await file.slice(0, 131072).arrayBuffer();
+          codecInfo = detectMp4Codec(new Uint8Array(sliceBuf));
+        } catch (_) {}
+
         onFileSelected(file, {
           type: 'video',
           duration: 0,
@@ -58,6 +73,8 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
           aspectRatio: '1.78',
           size: file.size,
           previewUrl: url,
+          isHevc: codecInfo.isHevc,
+          codec: codecInfo.codec
         });
       };
     } else {
@@ -208,6 +225,17 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
                       <span className="shrink-0 text-slate-400">•</span>
                       <span className="truncate">Resolusi: <strong className="text-slate-900 font-mono font-black">{fileMetadata.width} × {fileMetadata.height}</strong></span>
                     </>
+                  )}
+                  {fileMetadata?.type === 'video' && fileMetadata?.isHevc && (
+                    <span className="text-emerald-950 bg-[#a7f3d0] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-emerald-800 fill-emerald-600" />
+                      <span>HEVC / H.265 (4000 Nits EDR Ready)</span>
+                    </span>
+                  )}
+                  {fileMetadata?.type === 'video' && !fileMetadata?.isHevc && fileMetadata?.codec && (
+                    <span className="text-amber-950 bg-[#fed7aa] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1" title="Untuk efek silau EDR maksimal di layar HP, disarankan video diexport dengan format H.265/HEVC (misal dari CapCut/Alight Motion)">
+                      <span>{fileMetadata.codec} (Gunakan H.265 untuk Silau Penuh)</span>
+                    </span>
                   )}
                 </div>
               </div>

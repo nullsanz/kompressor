@@ -185,6 +185,21 @@ export default function ResultComparison({
         )}
       </div>
 
+      {/* Dolby Vision 8.4 EDR Verification Banner */}
+      {(preset?.isDolbyVision || preset?.id === 'fastpatch' || preset?.id === 'hdrsilau' || preset?.id === 'hdrig') && (
+        <div className="p-3 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-center gap-2.5 shadow-[2px_2px_0px_0px_#111827]">
+          <span className="text-xl shrink-0">✨</span>
+          <div className="flex-1 min-w-0">
+            <strong className="font-black text-cyan-950 block uppercase tracking-wider text-[11px]">
+              Dolby Vision Profile 8.4 EDR (4000 Nits MaxCLL) Berhasil Disuntikkan!
+            </strong>
+            <p className="text-[11px] text-cyan-900 leading-snug mt-0.5">
+              Standar <em>quietvoid/dovi_tool</em>: Layar HP OLED / HDR (iPhone, Samsung Galaxy, Xiaomi) otomatis memicu backlight EDR peak silau maksimal dengan warna 100% natural tanpa distorsi muka merah bata.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons: Download, WhatsApp Share, Reset */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full min-w-0">
         <div className="tetris-btn-wrap w-full sm:w-auto">

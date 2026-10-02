@@ -13,9 +13,9 @@ export const PRESETS = [
     badgeColor: 'cyan',
     icon: 'Zap',
     isInstantPatch: true,
-    description: 'Suntik metadata Dolby Vision Profile 8.4 (DOVIDecoderConfigurationRecord atom dvvC 32-byte + Wanxzyy MP4 Container Refinery) langsung ke file MP4 tanpa render ulang! Hanya butuh 0.1 detik, 100% warna natural asli & tembus TikTok & Instagram Silau! (💡 Tips: Gunakan video export CapCut format H.265/HEVC untuk hasil peak silau maksimal)',
-    target: 'Semua Video MP4 Jadi Dolby Vision Asli',
-    resolutionLabel: 'Kualitas Asli 100% Lossless (Proses 0.1 Detik)'
+    description: 'Standar Industri quietvoid/dovi_tool: Suntik NAL 62 RPU (MaxCLL 4000 Nits EDR + L2 Neutral Trims) ke setiap frame video HEVC + atom dvvC tanpa render ulang! Hanya butuh 0.1 detik, 100% warna natural asli tanpa muka merah bata & tembus layar silau maksimal! (💡 Tips: Gunakan video export CapCut format H.265/HEVC).',
+    target: 'Video HEVC Jadi Dolby Vision Asli 4000 Nits',
+    resolutionLabel: 'Kualitas Asli 100% Lossless (0.1 Detik)'
   },
   {
     id: 'hdrsilau',

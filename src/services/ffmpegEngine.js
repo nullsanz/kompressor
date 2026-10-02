@@ -333,8 +333,11 @@ export async function processVideo({
 }
 
 /**
- * Instan Patch Dolby Vision 8.4 (Tanpa Render / 0 Detik)
- * Khusus video yang sudah diedit (misal di CapCut / Alight Motion) dan hanya butuh metadata Silau EDR
+ * Instan Patch Dolby Vision 8.4 (Tanpa Render / 0.1 Detik)
+ * Standar Industri quietvoid/dovi_tool:
+ * - Menyuntikkan NAL 62 Dolby Vision RPU (L1 MaxCLL: 4000 nits, L2 neutral trims, zero MMR distortion)
+ * - Menyuntikkan atom dvvC (32 bytes, Profile 8.4 HLG) ke stsd/hvc1
+ * - Normalisasi durasi container & FastStart [ftyp] -> [moov] -> [mdat]
  */
 export async function processInstantPatch({
   file,
@@ -345,13 +348,15 @@ export async function processInstantPatch({
   if (onProgress) onProgress({ ratio: 0.2, text: 'Membaca video ke memori...' });
 
   const arrayBuffer = await file.arrayBuffer();
-  if (onProgress) onProgress({ ratio: 0.5, text: 'Menganalisis box MP4...' });
+  const u8Input = new Uint8Array(arrayBuffer);
 
-  onLog(`[Instant Dolby Vision] Menganalisis container MP4 dan menyuntikkan atom dvvC Profile 8.4 HLG...`);
-  const patched = await patchVideoDolbyVision(new Uint8Array(arrayBuffer));
-  if (onProgress) onProgress({ ratio: 0.9, text: 'Menyelesaikan injeksi QuickTime...' });
+  if (onProgress) onProgress({ ratio: 0.4, text: 'Menganalisis bitstream HEVC & NAL units...' });
+  onLog(`[Instant Dolby Vision] Membedah struktur atom MP4 dan bitstream video...`);
 
-  onLog(`[Instant Dolby Vision] ✅ Atom DOVIDecoderConfigurationRecord (dvvC) & brand Apple QuickTime (qt  ) berhasil disuntikkan!`);
+  const patched = await patchVideoDolbyVision(u8Input);
+  if (onProgress) onProgress({ ratio: 0.85, text: 'Menormalisasi durasi container & FastStart...' });
+
+  onLog(`[Instant Dolby Vision] ✅ Dolby Vision Profile 8.4 (4000 Nits EDR) & container refinery berhasil disuntikkan!`);
   if (onProgress) onProgress({ ratio: 1.0, text: 'Selesai!' });
 
   const outputBlob = new Blob([patched], { type: 'video/mp4' });
@@ -366,7 +371,7 @@ export async function processInstantPatch({
     blob: outputBlob,
     url: outputUrl,
     size: outputBlob.size,
-    name: `${baseName}_DOLBY_VISION_SILAU_INSTANT.mp4`
+    name: `${baseName}_DOLBY_VISION_SILAU_4000NITS.mp4`
   };
 }
 

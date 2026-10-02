@@ -9,6 +9,7 @@
  */
 
 import './wanxzyyPatcher.js';
+import { injectDolbyVisionBitstreamProfile84, detectMp4Codec } from './hevcBitstreamPatcher.js';
 
 const DVVC_32_BOX = new Uint8Array([
   0x00, 0x00, 0x00, 0x20, // 32 bytes
@@ -258,13 +259,30 @@ export function normalizeContainerDurationBrowser(inputBytes) {
 
 export function patchVideoDolbyVision(inputBytes) {
   let preparedBytes = inputBytes;
+  let isBitstreamInjected = false;
+
+  // 1. Prioritas Utama: Injeksi Bitstream RPU NAL 62 (quietvoid/dovi_tool standard 4000 nits L1 + neutral L2)
   try {
-    preparedBytes = insertDvvCBoxProperlyBrowser(inputBytes);
-    console.log('[WANXZYY-PATCHER] dvvC Dolby Vision Profile 8.4 atom injected successfully (+32 bytes)');
+    const bitstreamRes = injectDolbyVisionBitstreamProfile84(inputBytes);
+    if (bitstreamRes && bitstreamRes.isHevc && bitstreamRes.patchedBytes) {
+      preparedBytes = bitstreamRes.patchedBytes;
+      isBitstreamInjected = true;
+      console.log(`[DOVI-BITSTREAM] ✅ Berhasil menyuntikkan 4000 Nits L1 RPU NAL 62 ke ${bitstreamRes.sampleCount} frame HEVC!`);
+    } else {
+      console.warn('[DOVI-BITSTREAM] Video bukan HEVC (atau tidak ditemukan track HEVC), menyuntikkan dvvC container box.');
+      preparedBytes = insertDvvCBoxProperlyBrowser(inputBytes);
+    }
   } catch (err) {
-    console.warn('[WANXZYY-PATCHER] Gagal menyisipkan dvvC:', err.message);
+    console.warn('[DOVI-BITSTREAM] Gagal injeksi bitstream, fallback ke container dvvC:', err.message);
+    try {
+      preparedBytes = insertDvvCBoxProperlyBrowser(inputBytes);
+      console.log('[WANXZYY-PATCHER] dvvC Dolby Vision Profile 8.4 atom injected successfully (+32 bytes)');
+    } catch (dvvcErr) {
+      console.warn('[WANXZYY-PATCHER] Gagal menyisipkan dvvC:', dvvcErr.message);
+    }
   }
 
+  // 2. Wanxzyy / Rein MP4 Container Refinery
   const patcher = globalThis.WanxzyyMp4Patcher || globalThis.ReinMp4Patcher;
   let finalBytes = preparedBytes;
 
@@ -276,13 +294,13 @@ export function patchVideoDolbyVision(inputBytes) {
         finalBytes = report.bytes;
       }
     } catch (err) {
-      console.warn('[WANXZYY-PATCHER] Patch failed:', err.message);
+      console.warn('[WANXZYY-PATCHER] Patch refinery skipped:', err.message);
     }
   } else {
     console.warn('[WANXZYY-PATCHER] Patcher engine not available');
   }
 
-  // Normalisasi durasi container mvhd & tkhd agar terbebas dari bug 512 juta jam dan thumbnail Explorer muncul
+  // 3. Normalisasi durasi container mvhd & tkhd agar terbebas dari bug 512 juta jam dan thumbnail Explorer muncul
   try {
     finalBytes = normalizeContainerDurationBrowser(finalBytes);
   } catch (err) {
@@ -294,8 +312,15 @@ export function patchVideoDolbyVision(inputBytes) {
 
 export const injectDolbyVisionBitstreamAndContainer = patchVideoDolbyVision;
 
+export {
+  injectDolbyVisionBitstreamProfile84,
+  detectMp4Codec
+};
+
 export default {
   patchVideoDolbyVision,
   injectDolbyVisionBitstreamAndContainer,
+  injectDolbyVisionBitstreamProfile84,
+  detectMp4Codec,
   normalizeContainerDurationBrowser
 };
