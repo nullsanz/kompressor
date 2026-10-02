@@ -86,7 +86,12 @@ export default function App() {
         end: defaultEnd,
         duration: metadata.duration
       });
-      setSelectedPresetId('hdrsilau');
+      // Jika HEVC (H.265), otomatis pilih 'fastpatch' untuk Layar Silau EDR 4000 Nits
+      if (metadata.isHevc) {
+        setSelectedPresetId('fastpatch');
+      } else {
+        setSelectedPresetId('hdrsilau');
+      }
     } else {
       setSelectedPresetId('pphd');
     }
@@ -105,6 +110,14 @@ export default function App() {
 
   const handleStartCompression = async () => {
     if (!selectedFile) return;
+
+    // Guard: Mencegah user menjalankan fastpatch pada video H.264
+    if (selectedPresetId === 'fastpatch' && fileMetadata?.type === 'video' && !fileMetadata?.isHevc) {
+      setError(
+        'Format video ini adalah H.264 (bukan HEVC). Layar HP (iPhone & Android AMOLED) hanya memicu peningkatan kecerahan Layar Silau EDR (4000 Nits) pada format HEVC / H.265. Silakan export video Anda dari CapCut dengan memilih Codec "H.265 / HEVC", atau pilih preset "TikTok JJ Ultra HD 60 FPS" untuk kompresi biasa.'
+      );
+      return;
+    }
 
     setError(null);
     setIsProcessing(true);
@@ -375,6 +388,7 @@ export default function App() {
           <div className="w-full max-w-3xl mx-auto">
             <ResultComparison
               originalFile={selectedFile}
+              fileMetadata={fileMetadata}
               result={result}
               preset={activePresetObj}
               onReset={() => {

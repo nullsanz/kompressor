@@ -9,16 +9,12 @@
  */
 
 import './wanxzyyPatcher.js';
-import { injectDolbyVisionBitstreamProfile84, detectMp4Codec } from './hevcBitstreamPatcher.js';
-
-const DVVC_32_BOX = new Uint8Array([
-  0x00, 0x00, 0x00, 0x20, // 32 bytes
-  0x64, 0x76, 0x76, 0x43, // 'dvvC'
-  0x01, 0x00, 0x10, 0x25, 0x40, // Profile 8.4 HLG (dvhe.08.04 BL+RPU)
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00
-]);
+import { 
+  injectDolbyVisionBitstreamProfile84, 
+  detectMp4Codec,
+  COLR_19_BOX,
+  DVVC_32_BOX
+} from './hevcBitstreamPatcher.js';
 
 function find4CC(u8, fourCC, from = 0, to = u8.length) {
   const b0 = fourCC.charCodeAt(0);
@@ -60,7 +56,12 @@ function insertDvvCBoxProperlyBrowser(inputBytes) {
   }
   if (vTrakPos === -1) return u8;
 
-  const hvc1Pos = find4CC(u8, 'hvc1', vTrakPos, moovEnd);
+  let hvc1Pos = find4CC(u8, 'hvc1', vTrakPos, moovEnd);
+  let isHev1 = false;
+  if (hvc1Pos === -1) {
+    hvc1Pos = find4CC(u8, 'hev1', vTrakPos, moovEnd);
+    if (hvc1Pos !== -1) isHev1 = true;
+  }
   if (hvc1Pos === -1) return u8;
 
   const hvcCPos = find4CC(u8, 'hvcC', hvc1Pos, moovEnd);
@@ -71,11 +72,24 @@ function insertDvvCBoxProperlyBrowser(inputBytes) {
   const dvvCPos = find4CC(u8, 'dvvC', hvc1Pos, hvc1Pos + view.getUint32(hvc1Pos - 4, false));
   if (dvvCPos !== -1) return u8;
 
-  const delta = DVVC_32_BOX.length;
+  // Insert COLR + DVVC
+  const injection = new Uint8Array(COLR_19_BOX.length + DVVC_32_BOX.length);
+  injection.set(COLR_19_BOX, 0);
+  injection.set(DVVC_32_BOX, COLR_19_BOX.length);
+
+  const delta = injection.length;
   const newBuf = new Uint8Array(u8.length + delta);
   newBuf.set(u8.subarray(0, insertPos), 0);
-  newBuf.set(DVVC_32_BOX, insertPos);
+  newBuf.set(injection, insertPos);
   newBuf.set(u8.subarray(insertPos), insertPos + delta);
+
+  if (isHev1) {
+    // Rename 'hev1' -> 'hvc1'
+    newBuf[hvc1Pos] = 0x68;     // 'h'
+    newBuf[hvc1Pos + 1] = 0x76; // 'v'
+    newBuf[hvc1Pos + 2] = 0x63; // 'c'
+    newBuf[hvc1Pos + 3] = 0x31; // '1'
+  }
 
   const nView = new DataView(newBuf.buffer, newBuf.byteOffset, newBuf.byteLength);
 
@@ -261,24 +275,24 @@ export function patchVideoDolbyVision(inputBytes) {
   let preparedBytes = inputBytes;
   let isBitstreamInjected = false;
 
-  // 1. Prioritas Utama: Injeksi Bitstream RPU NAL 62 (quietvoid/dovi_tool standard 4000 nits L1 + neutral L2)
+  // 1. Prioritas Utama: Injeksi Bitstream RPU NAL 62 + colr HLG + dvvC (quietvoid/dovi_tool standard 4000 nits L1 + neutral L2)
   try {
     const bitstreamRes = injectDolbyVisionBitstreamProfile84(inputBytes);
     if (bitstreamRes && bitstreamRes.isHevc && bitstreamRes.patchedBytes) {
       preparedBytes = bitstreamRes.patchedBytes;
       isBitstreamInjected = true;
-      console.log(`[DOVI-BITSTREAM] ✅ Berhasil menyuntikkan 4000 Nits L1 RPU NAL 62 ke ${bitstreamRes.sampleCount} frame HEVC!`);
+      console.log(`[DOVI-BITSTREAM] ✅ Berhasil menyuntikkan 4000 Nits L1 RPU NAL 62 + colr HLG + dvvC ke ${bitstreamRes.sampleCount} frame HEVC!`);
     } else {
-      console.warn('[DOVI-BITSTREAM] Video bukan HEVC (atau tidak ditemukan track HEVC), menyuntikkan dvvC container box.');
+      console.warn('[DOVI-BITSTREAM] Video bukan HEVC (atau tidak ditemukan track HEVC), menyuntikkan colr + dvvC container box.');
       preparedBytes = insertDvvCBoxProperlyBrowser(inputBytes);
     }
   } catch (err) {
-    console.warn('[DOVI-BITSTREAM] Gagal injeksi bitstream, fallback ke container dvvC:', err.message);
+    console.warn('[DOVI-BITSTREAM] Gagal injeksi bitstream, fallback ke container injection:', err.message);
     try {
       preparedBytes = insertDvvCBoxProperlyBrowser(inputBytes);
-      console.log('[WANXZYY-PATCHER] dvvC Dolby Vision Profile 8.4 atom injected successfully (+32 bytes)');
+      console.log('[WANXZYY-PATCHER] colr + dvvC Dolby Vision Profile 8.4 atoms injected successfully');
     } catch (dvvcErr) {
-      console.warn('[WANXZYY-PATCHER] Gagal menyisipkan dvvC:', dvvcErr.message);
+      console.warn('[WANXZYY-PATCHER] Gagal menyisipkan container box:', dvvcErr.message);
     }
   }
 
@@ -314,7 +328,9 @@ export const injectDolbyVisionBitstreamAndContainer = patchVideoDolbyVision;
 
 export {
   injectDolbyVisionBitstreamProfile84,
-  detectMp4Codec
+  detectMp4Codec,
+  COLR_19_BOX,
+  DVVC_32_BOX
 };
 
 export default {
@@ -322,5 +338,7 @@ export default {
   injectDolbyVisionBitstreamAndContainer,
   injectDolbyVisionBitstreamProfile84,
   detectMp4Codec,
+  COLR_19_BOX,
+  DVVC_32_BOX,
   normalizeContainerDurationBrowser
 };

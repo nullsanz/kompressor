@@ -11,6 +11,7 @@ import confetti from 'canvas-confetti';
 
 export default function ResultComparison({ 
   originalFile, 
+  fileMetadata,
   result, 
   preset,
   onReset 
@@ -185,20 +186,35 @@ export default function ResultComparison({
         )}
       </div>
 
-      {/* Dolby Vision 8.4 EDR Verification Banner */}
-      {(preset?.isDolbyVision || preset?.id === 'fastpatch' || preset?.id === 'hdrsilau' || preset?.id === 'hdrig') && (
-        <div className="p-3 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-center gap-2.5 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-xl shrink-0">✨</span>
+      {/* Dolby Vision 8.4 EDR vs Ultra HD 60 FPS Verification Banner */}
+      {!isImageResult && (result?.isDolbyVision || (preset?.id === 'fastpatch' && fileMetadata?.isHevc)) ? (
+        <div className="p-3.5 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+          <span className="text-2xl shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
-            <strong className="font-black text-cyan-950 block uppercase tracking-wider text-[11px]">
-              Dolby Vision Profile 8.4 EDR (4000 Nits MaxCLL) Berhasil Disuntikkan!
+            <strong className="font-heading text-sm text-cyan-950 block uppercase tracking-wide">
+              Dolby Vision Profile 8.4 EDR (4000 Nits Layar Silau) Aktif!
             </strong>
             <p className="text-[11px] text-cyan-900 leading-snug mt-0.5">
-              Standar <em>quietvoid/dovi_tool</em>: Layar HP OLED / HDR (iPhone, Samsung Galaxy, Xiaomi) otomatis memicu backlight EDR peak silau maksimal dengan warna 100% natural tanpa distorsi muka merah bata.
+              Standar <em>quietvoid/dovi_tool</em>: Layar HP OLED / HDR (iPhone &amp; Samsung Galaxy / Xiaomi AMOLED) otomatis mendongkrak backlight EDR peak silau hingga 1000–4000 nits dengan warna 100% natural tanpa muka merah bata.
             </p>
           </div>
         </div>
-      )}
+      ) : !isImageResult ? (
+        <div className="p-3.5 bg-[#fef08a] border-2 border-slate-900 rounded-lg text-xs text-amber-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+          <span className="text-xl shrink-0 mt-0.5">⚡</span>
+          <div className="flex-1 min-w-0">
+            <strong className="font-heading text-sm text-amber-950 block uppercase tracking-wide">
+              Video Ultra HD 60 FPS Siap Pakai (H.264)
+            </strong>
+            <p className="text-[11px] text-amber-900 leading-snug mt-0.5">
+              Kompresi high bitrate monster aktif dengan Lanczos clarity untuk mencegah video buram / pecah saat diunggah ke WhatsApp Status &amp; Instagram Story.
+            </p>
+            <div className="mt-2 pt-2 border-t border-amber-900/20 text-[11px] text-amber-950">
+              💡 <em>Mau bikin layar HP silau (nits naik otomatis)?</em> Export video di CapCut dengan Codec <strong>H.265 / HEVC</strong>, lalu gunakan preset <strong>⚡ Instan Patch Dolby Vision 8.4 (Layar Silau)</strong>!
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Action Buttons: Download, WhatsApp Share, Reset */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full min-w-0">

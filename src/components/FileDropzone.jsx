@@ -251,6 +251,42 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
               <span>Ganti File</span>
             </button>
           </div>
+
+          {/* Prominent Codec Guidance for Dolby Vision EDR Nits */}
+          {fileMetadata?.type === 'video' && fileMetadata?.isHevc && (
+            <div className="mt-3.5 p-3.5 bg-[#d1fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+              <div className="p-1.5 rounded bg-emerald-200 border border-slate-900 shrink-0 mt-0.5">
+                <Zap className="w-4 h-4 text-emerald-900 fill-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="font-heading uppercase tracking-wide block text-emerald-950 text-sm">
+                  ✨ Format HEVC 10-Bit Terdeteksi! Siap Dolby Vision 8.4 Layar Silau
+                </span>
+                <p className="text-[11px] text-emerald-900 mt-0.5 leading-snug">
+                  Video ini siap langsung di-patch ke <strong>Dolby Vision Profile 8.4 (4000 Nits EDR)</strong> dalam 0.1 detik. Layar HP OLED (iPhone &amp; Android) otomatis mendongkrak kecerahan ke tingkat silau maksimal tanpa muka merah bata!
+                </p>
+              </div>
+            </div>
+          )}
+
+          {fileMetadata?.type === 'video' && !fileMetadata?.isHevc && (
+            <div className="mt-3.5 p-3.5 bg-[#fef3c7] border-2 border-slate-900 rounded-lg text-xs text-amber-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+              <div className="p-1.5 rounded bg-amber-200 border border-slate-900 shrink-0 mt-0.5">
+                <AlertCircle className="w-4 h-4 text-amber-900" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="font-heading uppercase tracking-wide block text-amber-950 text-sm">
+                  💡 Format Video: H.264 (AVC) • Kenapa Layar Belum Silau?
+                </span>
+                <p className="text-[11px] text-amber-900 mt-0.5 leading-snug">
+                  Hardware layar HP (iPhone &amp; Android AMOLED) <strong>hanya memicu peningkatan nits (EDR Layar Silau)</strong> pada format <strong>HEVC / H.265</strong>. Video H.264 ini tetap bisa dikompres Ultra HD 60 FPS untuk WA &amp; IG, tapi tidak bisa memicu nits hardware layar.
+                </p>
+                <div className="mt-2 p-2.5 bg-white/90 rounded-md border border-amber-900/30 text-[11px] text-amber-950">
+                  <strong>👉 Tips 1-Klik di CapCut:</strong> Buka menu Export &gt; Resolusi &gt; Ubah <em>Codec</em> dari <strong>H.264</strong> menjadi <strong>H.265 / HEVC</strong>, lalu masukkan ke sini untuk langsung dapat efek Layar Silau!
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

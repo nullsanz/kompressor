@@ -1,6 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import { patchVideoDolbyVision } from './dolbyVisionPatcher.js';
+import { patchVideoDolbyVision, detectMp4Codec } from './dolbyVisionPatcher.js';
 
 let ffmpeg = null;
 let isLoaded = false;
@@ -328,7 +328,9 @@ export async function processVideo({
     blob: outputBlob,
     url: outputUrl,
     size: outputBlob.size,
-    name: `${baseName}_${preset.id.toUpperCase()}_HD.mp4`
+    name: `${baseName}_${preset.id.toUpperCase()}_HD.mp4`,
+    isDolbyVision: false,
+    isHevc: false
   };
 }
 
@@ -350,8 +352,15 @@ export async function processInstantPatch({
   const arrayBuffer = await file.arrayBuffer();
   const u8Input = new Uint8Array(arrayBuffer);
 
+  const codecInfo = detectMp4Codec(u8Input);
+  if (!codecInfo.isHevc) {
+    throw new Error(
+      `Format video ini adalah ${codecInfo.codec} (Bukan HEVC). Layar HP (iPhone & Android AMOLED) hanya memicu peningkatan kecerahan Layar Silau EDR (4000 Nits) pada format HEVC / H.265. Silakan export ulang video Anda di CapCut / Premiere dengan memilih Codec "H.265 / HEVC", lalu masukkan ke sini!`
+    );
+  }
+
   if (onProgress) onProgress({ ratio: 0.4, text: 'Menganalisis bitstream HEVC & NAL units...' });
-  onLog(`[Instant Dolby Vision] Membedah struktur atom MP4 dan bitstream video...`);
+  onLog(`[Instant Dolby Vision] Membedah struktur atom MP4 dan bitstream video HEVC...`);
 
   const patched = await patchVideoDolbyVision(u8Input);
   if (onProgress) onProgress({ ratio: 0.85, text: 'Menormalisasi durasi container & FastStart...' });
@@ -371,7 +380,10 @@ export async function processInstantPatch({
     blob: outputBlob,
     url: outputUrl,
     size: outputBlob.size,
-    name: `${baseName}_DOLBY_VISION_SILAU_4000NITS.mp4`
+    name: `${baseName}_DOLBY_VISION_SILAU_4000NITS.mp4`,
+    isDolbyVision: true,
+    isHevc: true,
+    peakNits: 4000
   };
 }
 
