@@ -8,7 +8,8 @@ import {
   UserCheck, 
   Sliders, 
   Check, 
-  Zap
+  Zap,
+  Sparkles
 } from 'lucide-react';
 import { PRESETS } from '../constants/presets';
 
@@ -20,6 +21,7 @@ export default function PresetSelector({
   const getIcon = (name) => {
     switch (name) {
       case 'Zap': return <Zap className="w-5 h-5 text-amber-600 fill-amber-400" />;
+      case 'Sparkles': return <Sparkles className="w-5 h-5 text-emerald-600 fill-emerald-300" />;
       case 'MessageCircle': return <MessageCircle className="w-5 h-5 text-emerald-700" />;
       case 'Instagram': return <Instagram className="w-5 h-5 text-purple-700" />;
       case 'Music2': return <Music2 className="w-5 h-5 text-rose-700" />;

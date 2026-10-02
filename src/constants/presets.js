@@ -19,19 +19,48 @@ export const PRESETS = [
     resolutionLabel: 'Kualitas Asli 100% Lossless (0.1 Detik)'
   },
   {
-    id: 'hdrsilau',
-    name: 'TikTok JJ Dolby Vision Silau (4000 Nits EDR)',
-    commandRef: '.hdrsilau / .jjtiktok / .jjsilau',
-    badge: 'Brutal Silau • 4000 Nits EDR',
+    id: 'hdrbrutalsilau',
+    name: 'TikTok JJ Dolby Vision Brutal Silau (4000 Nits EDR)',
+    commandRef: '.hdrbrutalsilau / .hdrsilau',
+    badge: 'Brutal Silau • 4000 Nits Overdrive',
     badgeColor: 'amber',
     icon: 'Zap',
     isDolbyVision: true,
-    description: 'Formula Brutal Silau 4000 Nits EDR (Wanxzyy Aesthetic Edition): Menarik highlights lampu, flash JJ, dan pantulan ke tingkat silau maksimal (4000 Nits EDR) dengan warna kulit bersih natural tanpa muka merah! Menggunakan kurva ekspansi luminansi agresif + desaturasi cerdas + unsharp micro-contrast.',
+    description: 'Formula Brutal Silau 4000 Nits EDR Overdrive Maksimal: Menarik highlights lampu, flash JJ, dan pantulan ke tingkat silau maksimal (4000 Nits EDR) dengan warna kulit bersih natural tanpa muka merah! Memaksa panel AMOLED & iPhone membuka seluruh kecerahan backlight.',
     target: 'TikTok JJ & FYP (Dolby Vision 4000 Nits)',
     resolutionLabel: '1080x1920 Vertikal 9:16 (35 Mbps)',
     crf: 17,
     preset: 'ultrafast',
     scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,setsar=1,curves=all='0/0 0.20/0.26 0.40/0.52 0.55/0.75 0.70/0.93 0.82/1.0 1/1',eq=saturation=0.80,unsharp=3:3:0.9:3:3:0.0",
+    fps: 60,
+    audioBitrate: '192k',
+    audioSampleRate: '48000',
+    extraArgs: [
+      '-profile:v', 'high',
+      '-level', '4.2',
+      '-maxrate', '35000k',
+      '-bufsize', '70000k',
+      '-pix_fmt', 'yuv420p',
+      '-g', '60',
+      '-keyint_min', '30',
+      '-brand', 'isom',
+      '-movflags', '+faststart'
+    ]
+  },
+  {
+    id: 'hdrsupersilau',
+    name: 'TikTok JJ Dolby Vision Super Silau (2000 Nits Aesthetic)',
+    commandRef: '.hdrsupersilau / .smarthdr',
+    badge: 'Super Silau • 2000 Nits Punch',
+    badgeColor: 'emerald',
+    icon: 'Sparkles',
+    isDolbyVision: true,
+    description: 'Formula Super Silau 2000 Nits EDR (Wanxzyy Aesthetic Edition): Menarik highlights di atas 60% IRE, nembus putih terang di 0.88 IRE. Midtones wajah sangat lembut glowing di 48% IRE. Hasil video sangat seimbang, mengkilap estetik, dan nyaman di mata.',
+    target: 'TikTok & IG (Dolby Vision 2000 Nits Aesthetic)',
+    resolutionLabel: '1080x1920 Vertikal 9:16 (35 Mbps)',
+    crf: 17,
+    preset: 'ultrafast',
+    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,setsar=1,curves=all='0/0 0.20/0.24 0.40/0.48 0.60/0.74 0.75/0.92 0.88/1.0 1/1',eq=saturation=0.82,unsharp=3:3:0.8:3:3:0.0",
     fps: 60,
     audioBitrate: '192k',
     audioSampleRate: '48000',
@@ -244,3 +273,9 @@ export const DURATION_LIMITS = [
   { label: '60s (Status WA Baru & Story IG)', seconds: 60 },
   { label: 'Penuh (Tanpa Potong)', seconds: 0 },
 ];
+
+export function getPresetById(id) {
+  if (!id) return PRESETS[0];
+  if (id === 'hdrsilau') return PRESETS.find(p => p.id === 'hdrbrutalsilau') || PRESETS[0];
+  return PRESETS.find(p => p.id === id) || PRESETS[0];
+}

@@ -16,7 +16,7 @@ import ProgressCard from './components/ProgressCard';
 import ResultComparison from './components/ResultComparison';
 import Footer from './components/Footer';
 
-import { PRESETS } from './constants/presets';
+import { PRESETS, getPresetById } from './constants/presets';
 import { getFFmpegInstance, processVideo, processPPHD, processInstantPatch } from './services/ffmpegEngine';
 
 export default function App() {
@@ -27,7 +27,7 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileMetadata, setFileMetadata] = useState(null);
   const [trimRange, setTrimRange] = useState({ start: 0, end: 30, duration: 30 });
-  const [selectedPresetId, setSelectedPresetId] = useState('hdrsilau');
+  const [selectedPresetId, setSelectedPresetId] = useState('hdrbrutalsilau');
   const [liveStats, setLiveStats] = useState({ fps: '', speed: '' });
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
@@ -90,7 +90,7 @@ export default function App() {
       if (metadata.isHevc) {
         setSelectedPresetId('fastpatch');
       } else {
-        setSelectedPresetId('hdrsilau');
+        setSelectedPresetId('hdrbrutalsilau');
       }
     } else {
       setSelectedPresetId('pphd');
@@ -133,7 +133,7 @@ export default function App() {
     }, 1000);
 
     try {
-      const activePreset = PRESETS.find(p => p.id === selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
+      const activePreset = getPresetById(selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
       const isImage = fileMetadata?.type === 'image';
       let res = null;
 
@@ -210,7 +210,7 @@ export default function App() {
     }
   };
 
-  const activePresetObj = PRESETS.find(p => p.id === selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
+  const activePresetObj = getPresetById(selectedPresetId) || { id: 'custom', name: 'Mode Kustom' };
 
   return (
     <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-[#fef08a] selection:text-slate-900">

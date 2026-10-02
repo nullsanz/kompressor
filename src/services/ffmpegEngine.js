@@ -301,8 +301,8 @@ export async function processVideo({
     await instance.deleteFile(outputName);
   } catch (_) {}
 
-  // Jika preset Dolby Vision (hdrsilau / hdrig / isDolbyVision), suntikkan atom dvvC & container refinery
-  if (preset.isDolbyVision || preset.id === 'hdrsilau' || preset.id === 'hdrig') {
+  // Jika preset Dolby Vision (hdrbrutalsilau / hdrsupersilau / hdrsilau / hdrig / isDolbyVision), suntikkan atom dvvC & container refinery
+  if (preset.isDolbyVision || preset.id === 'hdrbrutalsilau' || preset.id === 'hdrsupersilau' || preset.id === 'hdrsilau' || preset.id === 'hdrig') {
     try {
       onLog(`[Dolby Vision 8.4] Menginjeksikan atom dvvC (DOVIDecoderConfigurationRecord) & Apple QuickTime brand...`);
       onProgress({ ratio: 0.98, text: 'Menginjeksikan Dolby Vision Profile 8.4...' });
