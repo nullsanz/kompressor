@@ -345,13 +345,19 @@ function concatUint8Arrays(arrays) {
  */
 export function detectMp4Codec(inputData) {
   const u8 = inputData instanceof Uint8Array ? inputData : new Uint8Array(inputData);
-  const scanLimit = Math.min(u8.length, 131072); // scan 128KB awal
   
-  if (findFourCC(u8, 'hvc1', 0, scanLimit) !== -1 || findFourCC(u8, 'hev1', 0, scanLimit) !== -1) {
+  // 1. Scan hvc1 atau hev1 di seluruh buffer (tanpa batas 128KB yang memotong moov di belakang)
+  if (findFourCC(u8, 'hvc1', 0, u8.length) !== -1 || findFourCC(u8, 'hev1', 0, u8.length) !== -1) {
     return { isHevc: true, codec: 'H.265 / HEVC', tag: 'hvc1' };
   }
-  if (findFourCC(u8, 'avc1', 0, scanLimit) !== -1 || findFourCC(u8, 'avc3', 0, scanLimit) !== -1) {
+  // 2. Scan avc1 atau avc3 di seluruh buffer
+  if (findFourCC(u8, 'avc1', 0, u8.length) !== -1 || findFourCC(u8, 'avc3', 0, u8.length) !== -1) {
     return { isHevc: false, codec: 'H.264 / AVC', tag: 'avc1' };
+  }
+  // 3. Cek ftyp brand di 64 byte awal
+  const ftypLimit = Math.min(u8.length, 64);
+  if (findFourCC(u8, 'hvc1', 0, ftypLimit) !== -1 || findFourCC(u8, 'hev1', 0, ftypLimit) !== -1) {
+    return { isHevc: true, codec: 'H.265 / HEVC', tag: 'hvc1' };
   }
   return { isHevc: false, codec: 'Unknown / Non-HEVC', tag: 'unknown' };
 }

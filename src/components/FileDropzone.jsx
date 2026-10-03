@@ -28,6 +28,33 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       return;
     }
 
+    // Helper deteksi codec MP4 yang membaca bagian awal (head) dan akhir (tail) file
+    const inspectFileCodec = async (f) => {
+      try {
+        // 1. Cek 256 KB awal (untuk MP4 faststart / moov di depan)
+        const headLen = Math.min(f.size, 262144);
+        const headBuf = await f.slice(0, headLen).arrayBuffer();
+        let codecInfo = detectMp4Codec(new Uint8Array(headBuf));
+        if (codecInfo.isHevc || codecInfo.tag === 'avc1') {
+          return codecInfo;
+        }
+
+        // 2. Jika belum ketemu (rekaman kamera HP Android/iPhone & CapCut Web meletakkan moov di belakang mdat):
+        // Cek 2 MB terakhir dari file
+        if (f.size > headLen) {
+          const tailLen = Math.min(f.size, 2097152); // 2 MB tail
+          const tailBuf = await f.slice(f.size - tailLen, f.size).arrayBuffer();
+          const tailCodecInfo = detectMp4Codec(new Uint8Array(tailBuf));
+          if (tailCodecInfo.isHevc || tailCodecInfo.tag === 'avc1') {
+            return tailCodecInfo;
+          }
+        }
+        return codecInfo;
+      } catch (_) {
+        return { isHevc: false, codec: 'MP4 Video', tag: 'unknown' };
+      }
+    };
+
     // Inspect metadata
     if (isVideo) {
       const url = URL.createObjectURL(file);
@@ -36,11 +63,7 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       tempVideo.src = url;
 
       tempVideo.onloadedmetadata = async () => {
-        let codecInfo = { isHevc: false, codec: 'MP4 Video' };
-        try {
-          const sliceBuf = await file.slice(0, 131072).arrayBuffer();
-          codecInfo = detectMp4Codec(new Uint8Array(sliceBuf));
-        } catch (_) {}
+        const codecInfo = await inspectFileCodec(file);
 
         const metadata = {
           type: 'video',
@@ -59,11 +82,7 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       };
 
       tempVideo.onerror = async () => {
-        let codecInfo = { isHevc: false, codec: 'MP4 Video' };
-        try {
-          const sliceBuf = await file.slice(0, 131072).arrayBuffer();
-          codecInfo = detectMp4Codec(new Uint8Array(sliceBuf));
-        } catch (_) {}
+        const codecInfo = await inspectFileCodec(file);
 
         onFileSelected(file, {
           type: 'video',
