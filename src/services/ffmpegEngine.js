@@ -279,8 +279,9 @@ export async function processVideo({
     }
   }
 
-  // Optimasi container browser
+  // Optimasi container browser & Progressive Streaming (Anti-Stuck di TikTok/IG)
   args.push('-avoid_negative_ts', 'make_zero');
+  args.push('-max_interleave_delta', '0');
 
   // Output container
   args.push(outputName);

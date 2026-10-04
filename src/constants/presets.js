@@ -44,6 +44,7 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'isom',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -73,6 +74,7 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'isom',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -102,6 +104,7 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'isom',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -130,6 +133,7 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'mp42',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -158,6 +162,7 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'mp42',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -181,6 +186,7 @@ export const PRESETS = [
       '-profile:v', 'high',
       '-level', '4.1',
       '-pix_fmt', 'yuv420p',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -203,6 +209,7 @@ export const PRESETS = [
       '-profile:v', 'high',
       '-level', '4.1',
       '-pix_fmt', 'yuv420p',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -225,6 +232,7 @@ export const PRESETS = [
       '-profile:v', 'high',
       '-level', '4.1',
       '-pix_fmt', 'yuv420p',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
@@ -247,6 +255,7 @@ export const PRESETS = [
       '-profile:v', 'high',
       '-level', '4.1',
       '-pix_fmt', 'yuv420p',
+      '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
