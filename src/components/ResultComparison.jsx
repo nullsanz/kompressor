@@ -6,7 +6,8 @@ import {
   TrendingDown, 
   Film,
   MessageCircle,
-  Instagram
+  Instagram,
+  Music2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -15,7 +16,8 @@ export default function ResultComparison({
   fileMetadata,
   result, 
   preset,
-  onReset 
+  onReset,
+  onOpenTikTokGuide
 }) {
   const [activeTab, setActiveTab] = useState('result'); // 'result' | 'original'
 
@@ -41,27 +43,28 @@ export default function ResultComparison({
   const compressedSize = result?.size || 1;
   const savedBytes = Math.max(0, originalSize - compressedSize);
   const savedPercent = Math.min(99, Math.max(0, Math.round((savedBytes / originalSize) * 100)));
+  const isImageResult = result?.blob?.type?.startsWith('image/');
 
   const handleDownload = () => {
     if (!result?.url) return;
     const a = document.createElement('a');
     a.href = result.url;
-    a.download = result.name || 'video_kompres_hd.mp4';
+    a.download = result.name || (isImageResult ? 'foto_profil_hd.jpg' : 'video_kompres_hd.mp4');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
   const handleShareWhatsApp = async () => {
-    // 1. Download file otomatis agar tersimpan di galeri
+    // 1. Download file otomatis ke perangkat
     handleDownload();
 
-    // 2. Coba Web Share API dengan file langsung jika didukung browser HP
+    // 2. Coba Web Share API dengan file langsung (membuka native share sheet Android/iOS)
     if (result?.blob && navigator.canShare) {
       try {
         const fileToShare = new File(
           [result.blob], 
-          result.name || 'video_kompres_hd.mp4', 
+          result.name || (isImageResult ? 'foto_profil_hd.jpg' : 'video_kompres_hd.mp4'), 
           { type: result.blob.type || (isImageResult ? 'image/jpeg' : 'video/mp4') }
         );
         if (navigator.canShare({ files: [fileToShare] })) {
@@ -78,32 +81,34 @@ export default function ResultComparison({
       }
     }
 
-    // 3. Fallback: Buka aplikasi WhatsApp langsung di mobile atau WhatsApp Web di desktop
+    // 3. Fallback aman tanpa broken parameter (mencegah error "Tautan tidak ditemukan")
+    alert('✅ File sudah otomatis terunduh ke Galeri / Download HP Anda!\n\nLangkah pasang Status WhatsApp HD:\n1. Buka aplikasi WhatsApp\n2. Masuk ke tab Pembaruan / Status\n3. Buat status baru dan pilih video yang baru didownload.');
+
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
-      window.location.href = 'whatsapp://send';
+      window.location.href = 'whatsapp://';
     } else {
       window.open('https://web.whatsapp.com', '_blank');
     }
   };
 
   const handleShareInstagram = async () => {
-    // 1. Download file otomatis agar tersimpan di galeri
+    // 1. Download file otomatis ke perangkat
     handleDownload();
 
-    // 2. Web Share API jika didukung (di HP akan memunculkan pilihan aplikasi Instagram Story/Reels)
+    // 2. Web Share API jika didukung (pilihan Story / Reels di share dialog HP)
     if (result?.blob && navigator.canShare) {
       try {
         const fileToShare = new File(
           [result.blob], 
-          result.name || 'video_kompres_hd.mp4', 
+          result.name || (isImageResult ? 'foto_profil_hd.jpg' : 'video_kompres_hd.mp4'), 
           { type: result.blob.type || (isImageResult ? 'image/jpeg' : 'video/mp4') }
         );
         if (navigator.canShare({ files: [fileToShare] })) {
           await navigator.share({
             files: [fileToShare],
             title: 'Kirim ke Instagram',
-            text: 'Video HD siap untuk Story Instagram!'
+            text: 'Video HD siap untuk Story / Reels Instagram!'
           });
           return;
         }
@@ -113,19 +118,15 @@ export default function ResultComparison({
       }
     }
 
-    // 3. Fallback: Buka Instagram di HP atau Web
+    // 3. Fallback: Buka Instagram
+    alert('✅ File sudah otomatis terunduh ke Galeri / Download HP Anda!\n\nBuka aplikasi Instagram > Buat Story atau Reels > Pilih video dari galeri.');
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
-      window.location.href = 'instagram://story-camera';
-      setTimeout(() => {
-        window.open('https://www.instagram.com', '_blank');
-      }, 1200);
+      window.location.href = 'instagram://app';
     } else {
       window.open('https://www.instagram.com', '_blank');
     }
   };
-
-  const isImageResult = result?.blob?.type?.startsWith('image/');
 
   return (
     <div className="w-full rounded-xl border-3 border-slate-900 bg-white p-5 sm:p-8 space-y-6 shadow-[4px_4px_0px_0px_#111827] transition-all overflow-hidden min-w-0 animate-in fade-in duration-200">
@@ -260,19 +261,45 @@ export default function ResultComparison({
         )}
       </div>
 
-      {/* Ultra HD 60 FPS Status WA & Story IG Verification Banner */}
+      {/* Ultra HD Verification Banner */}
       {!isImageResult ? (
-        <div className="p-3.5 bg-[#d0fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-xl shrink-0 mt-0.5">🚀</span>
-          <div className="flex-1 min-w-0">
-            <strong className="font-heading text-sm text-emerald-950 block uppercase tracking-wide">
-              Video Ultra HD Siap untuk Status WA &amp; Story IG!
-            </strong>
-            <p className="text-[11px] text-emerald-900 leading-snug mt-0.5">
-              Encoding libx264 High Profile, faststart atom, dan tuned bitrate aktif. Kualitas video terjaga tajam dan 100% bebas pecah saat diunggah ke WhatsApp, Instagram Story, maupun TikTok.
-            </p>
+        preset?.id === 'tiktok' ? (
+          <div className="p-4 bg-[#fdf2f8] border-2 border-slate-900 rounded-xl text-xs text-rose-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+            <span className="text-2xl shrink-0 mt-0.5">🎵</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <strong className="font-heading text-sm text-rose-950 uppercase tracking-wide">
+                  Video TikTok HD Siap Diunggah!
+                </strong>
+                {onOpenTikTokGuide && (
+                  <button
+                    type="button"
+                    onClick={onOpenTikTokGuide}
+                    className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-900 shadow-[1px_1px_0px_0px_#111827]"
+                  >
+                    <Music2 className="w-3.5 h-3.5" />
+                    Panduan Upload Ekstensi
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-rose-900 leading-snug">
+                <strong>ATURAN MUTLAK:</strong> JANGAN upload lewat aplikasi TikTok HP langsung karena server TikTok otomatis mengompres paksa jadi 720p 30fps! Gunakan browser <strong>Quetta, Lemur, atau Kiwi</strong> dengan ekstensi <strong>Nullsanz TikTok Studio</strong> aktif di Mode Desktop.
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-3.5 bg-[#d0fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+            <span className="text-xl shrink-0 mt-0.5">🚀</span>
+            <div className="flex-1 min-w-0">
+              <strong className="font-heading text-sm text-emerald-950 block uppercase tracking-wide">
+                Video Ultra HD Siap untuk Status WA &amp; Story IG!
+              </strong>
+              <p className="text-[11px] text-emerald-900 leading-snug mt-0.5">
+                Encoding libx264 High Profile, faststart atom, dan tuned bitrate aktif. Kualitas video terjaga tajam dan 100% bebas pecah saat diunggah ke WhatsApp, Instagram Story, maupun TikTok.
+              </p>
+            </div>
+          </div>
+        )
       ) : (
         <div className="p-3.5 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
           <span className="text-xl shrink-0 mt-0.5">✨</span>
@@ -287,7 +314,7 @@ export default function ResultComparison({
         </div>
       )}
 
-      {/* Action Buttons: Download, WhatsApp Share, Instagram Share, Reset */}
+      {/* Action Buttons: Download, WhatsApp Share, Instagram Share, TikTok Guide, Reset */}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-2 w-full min-w-0">
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
@@ -299,6 +326,20 @@ export default function ResultComparison({
             <span className="truncate">Download ({formatBytes(compressedSize)})</span>
           </button>
         </div>
+
+        {preset?.id === 'tiktok' && onOpenTikTokGuide && (
+          <div className="tetris-btn-wrap w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={onOpenTikTokGuide}
+              className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-black hover:bg-slate-800 text-rose-300 border-2 border-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-[2px_2px_0px_0px_#111827]"
+              title="Buka panduan upload TikTok HD tanpa kompresi"
+            >
+              <Music2 className="w-4 h-4 text-rose-400 shrink-0" />
+              <span className="truncate">Panduan Upload TikTok</span>
+            </button>
+          </div>
+        )}
 
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button

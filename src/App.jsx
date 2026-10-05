@@ -14,6 +14,7 @@ import PresetSelector from './components/PresetSelector';
 import CustomSettings from './components/CustomSettings';
 import ProgressCard from './components/ProgressCard';
 import ResultComparison from './components/ResultComparison';
+import TikTokGuideModal from './components/TikTokGuideModal';
 import Footer from './components/Footer';
 
 import { PRESETS, getPresetById } from './constants/presets';
@@ -28,6 +29,7 @@ export default function App() {
   const [fileMetadata, setFileMetadata] = useState(null);
   const [trimRange, setTrimRange] = useState({ start: 0, end: 30, duration: 30 });
   const [selectedPresetId, setSelectedPresetId] = useState('khususwa');
+  const [showTikTokGuide, setShowTikTokGuide] = useState(false);
   const [liveStats, setLiveStats] = useState({ fps: '', speed: '' });
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
@@ -312,6 +314,7 @@ export default function App() {
                 selectedPresetId={selectedPresetId}
                 onSelectPreset={setSelectedPresetId}
                 isImageFile={fileMetadata?.type === 'image'}
+                onOpenTikTokGuide={() => setShowTikTokGuide(true)}
               />
 
               {/* Custom Settings Panel (If selected) */}
@@ -365,6 +368,7 @@ export default function App() {
               fileMetadata={fileMetadata}
               result={result}
               preset={activePresetObj}
+              onOpenTikTokGuide={() => setShowTikTokGuide(true)}
               onReset={() => {
                 setResult(null);
                 setSelectedFile(null);
@@ -375,6 +379,12 @@ export default function App() {
         )}
 
       </main>
+
+      {/* TikTok Upload Guide Modal */}
+      <TikTokGuideModal
+        isOpen={showTikTokGuide}
+        onClose={() => setShowTikTokGuide(false)}
+      />
 
       {/* Footer */}
       <Footer />

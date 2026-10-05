@@ -16,7 +16,8 @@ import { PRESETS } from '../constants/presets';
 export default function PresetSelector({ 
   selectedPresetId, 
   onSelectPreset,
-  isImageFile = false 
+  isImageFile = false,
+  onOpenTikTokGuide
 }) {
   const getIcon = (name) => {
     switch (name) {
@@ -65,7 +66,12 @@ export default function PresetSelector({
           return (
             <div
               key={preset.id}
-              onClick={() => onSelectPreset(preset.id)}
+              onClick={() => {
+                onSelectPreset(preset.id);
+                if (preset.id === 'tiktok' && onOpenTikTokGuide) {
+                  onOpenTikTokGuide();
+                }
+              }}
               className={`relative rounded-xl p-4 cursor-pointer transition-all duration-150 text-left flex flex-col justify-between min-w-0 border-3 border-slate-900 ${
                 isSelected
                   ? 'bg-[#fef08a] shadow-[4px_4px_0px_0px_#111827] ring-2 ring-slate-900 -translate-y-0.5'
@@ -101,6 +107,24 @@ export default function PresetSelector({
                 <p className="text-[11px] font-bold text-slate-700 leading-relaxed mb-3">
                   {preset.description}
                 </p>
+
+                {/* Khusus Preset TikTok: Tombol Cepat Buka Panduan Ekstensi */}
+                {preset.id === 'tiktok' && (
+                  <div className="mb-3 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onOpenTikTokGuide) onOpenTikTokGuide();
+                      }}
+                      className="w-full py-1.5 px-2.5 rounded-lg bg-[#ffe4e6] hover:bg-[#fecdd3] border-2 border-slate-900 text-rose-950 text-[10px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_0px_#111827] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                      title="Buka panduan upload browser Quetta/Lemur/Kiwi + ekstensi"
+                    >
+                      <Sparkles className="w-3 h-3 text-rose-600 shrink-0" />
+                      <span>Panduan Upload Browser + Ekstensi</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Badges Footer */}
