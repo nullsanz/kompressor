@@ -1,7 +1,7 @@
 import React from 'react';
 import { Video, Cpu, ShieldCheck, Sparkles, QrCode, Link2, Download, ExternalLink } from 'lucide-react';
 
-export default function Navbar({ engineStatus }) {
+export default function Navbar({ engineStatus, isWakeLockOn = false }) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b-4 border-slate-900 shadow-[0_2px_0px_0px_#111827] text-slate-900 transition-all">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
@@ -70,8 +70,22 @@ export default function Navbar({ engineStatus }) {
           </span>
         </nav>
 
-        {/* Right Actions: WASM Status Badge */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Right Actions: WASM Status & Anti-Sleep Badge */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Anti-Sleep Pill */}
+          {isWakeLockOn && (
+            <div 
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#d0fae5] text-emerald-950 border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827]"
+              title="Anti-Sleep Aktif: Layar HP tidak akan mati otomatis saat merender"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+              </span>
+              <span className="hidden sm:inline">Anti-Sleep ON</span>
+            </div>
+          )}
+
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wider border-2 border-slate-900 shadow-[2px_2px_0px_0px_#111827] transition-all ${
             engineStatus === 'ready'
               ? 'bg-[#d0fae5] text-emerald-950'

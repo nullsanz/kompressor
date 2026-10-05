@@ -7,7 +7,11 @@ import {
   Film,
   MessageCircle,
   Instagram,
-  Music2
+  Music2,
+  Sparkles,
+  Sliders,
+  ArrowRight,
+  FolderPlus
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -17,6 +21,8 @@ export default function ResultComparison({
   result, 
   preset,
   onReset,
+  onResetNewFile,
+  onChangePreset,
   onOpenTikTokGuide
 }) {
   const [activeTab, setActiveTab] = useState('result'); // 'result' | 'original'
@@ -81,7 +87,7 @@ export default function ResultComparison({
       }
     }
 
-    // 3. Fallback aman tanpa broken parameter (mencegah error "Tautan tidak ditemukan")
+    // 3. Fallback aman tanpa broken parameter
     alert('✅ File sudah otomatis terunduh ke Galeri / Download HP Anda!\n\nLangkah pasang Status WhatsApp HD:\n1. Buka aplikasi WhatsApp\n2. Masuk ke tab Pembaruan / Status\n3. Buat status baru dan pilih video yang baru didownload.');
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -96,7 +102,7 @@ export default function ResultComparison({
     // 1. Download file otomatis ke perangkat
     handleDownload();
 
-    // 2. Web Share API jika didukung (pilihan Story / Reels di share dialog HP)
+    // 2. Web Share API jika didukung
     if (result?.blob && navigator.canShare) {
       try {
         const fileToShare = new File(
@@ -128,12 +134,39 @@ export default function ResultComparison({
     }
   };
 
+  // Quick preset shortcuts list for the same footage
+  const PRESET_SHORTCUTS = [
+    { id: 'khususwa', label: 'Status WA 1080p', icon: <MessageCircle className="w-3.5 h-3.5 text-emerald-700 shrink-0" /> },
+    { id: 'hdrwa', label: 'WA Kinclong (Luminescence)', icon: <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" /> },
+    { id: 'khususig30k', label: 'Story IG 30k 60FPS', icon: <Instagram className="w-3.5 h-3.5 text-purple-700 shrink-0" /> },
+    { id: 'tiktok', label: 'TikTok 9:16 Anti-Blur', icon: <Music2 className="w-3.5 h-3.5 text-rose-700 shrink-0" /> },
+    { id: '720p', label: 'Hemat Kuota 720p', icon: <Film className="w-3.5 h-3.5 text-blue-700 shrink-0" /> },
+    { id: 'pphd', label: 'Foto Profil 1:1', icon: <CheckCircle2 className="w-3.5 h-3.5 text-cyan-700 shrink-0" /> },
+  ];
+
+  const handleTriggerChangePreset = (newPresetId = null) => {
+    if (onChangePreset) {
+      onChangePreset(newPresetId);
+    } else if (onReset) {
+      onReset();
+    }
+  };
+
+  const handleTriggerResetNew = () => {
+    if (onResetNewFile) {
+      onResetNewFile();
+    } else if (onReset) {
+      onReset();
+    }
+  };
+
   return (
-    <div className="w-full rounded-xl border-3 border-slate-900 bg-white p-5 sm:p-8 space-y-6 shadow-[4px_4px_0px_0px_#111827] transition-all overflow-hidden min-w-0 animate-in fade-in duration-200">
+    <div className="w-full rounded-2xl border-3 border-slate-900 bg-white p-5 sm:p-8 space-y-6 shadow-[5px_5px_0px_0px_#111827] transition-all overflow-hidden min-w-0 animate-in fade-in duration-200">
+      
       {/* Success Badge Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b-2 border-dashed border-slate-300 w-full min-w-0">
         <div className="flex items-center gap-3 text-center sm:text-left min-w-0 flex-1">
-          <div className="w-12 h-12 rounded-lg bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 flex items-center justify-center shadow-[2px_2px_0px_0px_#111827] shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 flex items-center justify-center shadow-[2px_2px_0px_0px_#111827] shrink-0">
             <CheckCircle2 className="w-7 h-7 text-emerald-700" />
           </div>
           <div className="min-w-0 flex-1">
@@ -141,14 +174,14 @@ export default function ResultComparison({
               Kompresi Selesai dengan Sempurna!
             </h3>
             <p className="text-xs font-bold text-slate-500 truncate">
-              Preset: <strong className="text-slate-900 font-black">{preset?.name || 'Kustom'}</strong>
+              Preset Aktif: <strong className="text-slate-900 font-black">{preset?.name || 'Kustom'}</strong>
             </p>
           </div>
         </div>
 
         {/* Savings Badge */}
         {savedPercent > 0 && (
-          <div className="flex items-center gap-2 px-3.5 py-2 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827] shrink-0">
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-lg shadow-[2px_2px_0px_0px_#111827] shrink-0">
             <TrendingDown className="w-5 h-5 stroke-[2.5] text-emerald-700" />
             <div className="text-left">
               <span className="text-[10px] uppercase tracking-wider font-black block text-emerald-900">Hemat Ukuran</span>
@@ -159,9 +192,9 @@ export default function ResultComparison({
       </div>
 
       {/* File Details Bar */}
-      <div className="p-3.5 rounded-lg border-2 border-slate-900 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0 w-full shadow-[2px_2px_0px_0px_#111827]">
+      <div className="p-3.5 rounded-xl border-2 border-slate-900 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0 w-full shadow-[2px_2px_0px_0px_#111827]">
         <div className="flex items-center gap-2.5 min-w-0 w-full flex-1 overflow-hidden">
-          <div className="w-8 h-8 rounded-md bg-[#ffe4e6] border-2 border-slate-900 text-rose-900 flex items-center justify-center shadow-[1px_1px_0px_0px_#111827] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#ffe4e6] border-2 border-slate-900 text-rose-900 flex items-center justify-center shadow-[1px_1px_0px_0px_#111827] shrink-0">
             <Film className="w-4 h-4 text-slate-900" />
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
@@ -178,74 +211,46 @@ export default function ResultComparison({
             )}
           </div>
         </div>
-        <span className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#d0fae5] text-emerald-950 border-2 border-slate-900 shadow-[1px_1px_0px_0px_#111827]">
-          Siap Download
-        </span>
-      </div>
 
-      {/* Metrics Cards: Original vs Result */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full min-w-0">
-        <div className="p-3.5 rounded-lg border-2 border-slate-900 bg-slate-50 min-w-0 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1 truncate">
-            Ukuran Asli
-          </span>
-          <p className="text-base sm:text-lg font-bold text-slate-400 line-through truncate font-mono">
-            {formatBytes(originalSize)}
-          </p>
-        </div>
-
-        <div className="p-3.5 rounded-lg border-2 border-slate-900 bg-[#fef08a] text-slate-900 min-w-0 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-[10px] font-black uppercase tracking-wider block mb-1 truncate text-slate-800">
-            Ukuran Hasil
-          </span>
-          <p className="text-base sm:text-lg font-black font-mono truncate text-slate-950">
-            {formatBytes(compressedSize)}
-          </p>
-        </div>
-
-        <div className="col-span-2 sm:col-span-1 p-3.5 rounded-lg border-2 border-slate-900 bg-[#d0fae5] text-emerald-950 min-w-0 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-[10px] font-black uppercase tracking-wider block mb-1 truncate text-emerald-900">
-            Total Dihemat
-          </span>
-          <p className="text-base sm:text-lg font-black font-mono truncate text-emerald-950">
-            {formatBytes(savedBytes)}
-          </p>
+        {/* Size Stat Pill */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-slate-900 bg-white font-mono text-xs font-black shadow-[1.5px_1.5px_0px_0px_#111827] shrink-0 self-end sm:self-auto">
+          <span className="text-slate-400 line-through text-[11px]">{formatBytes(originalSize)}</span>
+          <span className="text-slate-400">➔</span>
+          <span className="text-emerald-700 text-sm">{formatBytes(compressedSize)}</span>
         </div>
       </div>
 
-      {/* View Switcher (Hasil vs Asli) */}
-      {!isImageResult && (
-        <div className="flex items-center justify-center gap-1.5 p-1.5 bg-slate-100 rounded-lg border-2 border-slate-900 max-w-xs mx-auto text-xs font-black shadow-[2px_2px_0px_0px_#111827] w-full">
-          <button
-            type="button"
-            onClick={() => setActiveTab('result')}
-            className={`flex-1 py-2 px-3 rounded-md transition-all uppercase tracking-wider truncate cursor-pointer ${
-              activeTab === 'result'
-                ? 'bg-[#fef08a] text-slate-900 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]'
-                : 'text-slate-700 hover:text-slate-900'
-            }`}
-          >
-            ✨ Hasil Kompres
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('original')}
-            className={`flex-1 py-2 px-3 rounded-md transition-all uppercase tracking-wider truncate cursor-pointer ${
-              activeTab === 'original'
-                ? 'bg-white text-slate-900 border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_#111827]'
-                : 'text-slate-700 hover:text-slate-900'
-            }`}
-          >
-            📁 Video Asli
-          </button>
-        </div>
-      )}
+      {/* Comparison Tabs (Hasil vs Asli) */}
+      <div className="flex items-center justify-center gap-2 p-1 bg-slate-100 border-2 border-slate-900 rounded-xl max-w-xs mx-auto shadow-[2px_2px_0px_0px_#111827]">
+        <button
+          type="button"
+          onClick={() => setActiveTab('result')}
+          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === 'result'
+              ? 'bg-slate-900 text-white shadow-[1px_1px_0px_0px_#111827]'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Hasil Kompres ({formatBytes(compressedSize)})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('original')}
+          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === 'original'
+              ? 'bg-slate-900 text-white shadow-[1px_1px_0px_0px_#111827]'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Asli ({formatBytes(originalSize)})
+        </button>
+      </div>
 
-      {/* Preview Player */}
-      <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-h-[360px] sm:max-h-[420px] mx-auto flex items-center justify-center border-3 border-slate-900 shadow-[3px_3px_0px_0px_#111827] w-full">
+      {/* Video / Photo Preview Container */}
+      <div className="relative rounded-2xl overflow-hidden bg-black aspect-video max-h-[360px] sm:max-h-[440px] mx-auto flex items-center justify-center border-3 border-slate-900 shadow-[4px_4px_0px_0px_#111827]">
         {isImageResult ? (
           <img
-            src={result.url}
+            src={activeTab === 'result' ? result.url : URL.createObjectURL(originalFile)}
             alt="Hasil Foto Profil HD 1:1"
             className="w-full h-full object-contain"
           />
@@ -283,12 +288,12 @@ export default function ResultComparison({
                 )}
               </div>
               <p className="text-[11px] text-rose-900 leading-snug">
-                <strong>ATURAN MUTLAK:</strong> JANGAN upload lewat aplikasi TikTok HP langsung karena server TikTok otomatis mengompres paksa jadi 720p 30fps! Gunakan browser <strong>Quetta, Lemur, atau Kiwi</strong> dengan ekstensi <strong>Nullsanz TikTok Studio</strong> aktif di Mode Desktop.
+                <strong>ATURAN MUTLAK:</strong> JANGAN upload lewat aplikasi TikTok HP biasa karena server TikTok otomatis mengompres paksa jadi 720p 30fps! Gunakan browser <strong>Quetta, Lemur, atau Kiwi</strong> dengan ekstensi <strong>Nullsanz TikTok Studio</strong> aktif di Mode Desktop.
               </p>
             </div>
           </div>
         ) : (
-          <div className="p-3.5 bg-[#d0fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+          <div className="p-3.5 bg-[#d0fae5] border-2 border-slate-900 rounded-xl text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
             <span className="text-xl shrink-0 mt-0.5">🚀</span>
             <div className="flex-1 min-w-0">
               <strong className="font-heading text-sm text-emerald-950 block uppercase tracking-wide">
@@ -301,7 +306,7 @@ export default function ResultComparison({
           </div>
         )
       ) : (
-        <div className="p-3.5 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+        <div className="p-3.5 bg-[#cffafe] border-2 border-slate-900 rounded-xl text-xs text-cyan-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
           <span className="text-xl shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
             <strong className="font-heading text-sm text-cyan-950 block uppercase tracking-wide">
@@ -314,8 +319,55 @@ export default function ResultComparison({
         </div>
       )}
 
+      {/* QUICK PRESET SWITCH BAR (FOOTAGE SAMA) */}
+      <div className="p-4 sm:p-5 rounded-2xl border-3 border-slate-900 bg-[#fef08a] shadow-[4px_4px_0px_0px_#111827] space-y-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white border-2 border-slate-900 flex items-center justify-center shadow-[1px_1px_0px_0px_#111827] shrink-0">
+              <Sparkles className="w-4 h-4 text-amber-600 fill-amber-400" />
+            </div>
+            <div>
+              <h4 className="font-heading text-sm uppercase tracking-wide text-slate-900 leading-tight">
+                Mau Kompres Footage Ini ke Format Lain?
+              </h4>
+              <p className="text-[11px] font-bold text-amber-950">
+                Gunakan video yang sama langsung tanpa repot upload ulang!
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleTriggerChangePreset()}
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border-2 border-slate-900 text-slate-900 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_0px_#111827] cursor-pointer self-stretch sm:self-auto"
+            title="Kembali ke pemilihan preset dengan video ini"
+          >
+            <Sliders className="w-3.5 h-3.5 text-rose-600" />
+            <span>Atur Ulang Preset</span>
+          </button>
+        </div>
+
+        {/* 1-Click Quick Preset Chips */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          {PRESET_SHORTCUTS.filter(p => p.id !== preset?.id).map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => handleTriggerChangePreset(p.id)}
+              className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border-2 border-slate-900 text-slate-900 text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_0px_#111827] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+            >
+              {p.icon}
+              <span>{p.label}</span>
+              <ArrowRight className="w-3 h-3 text-slate-400" />
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Action Buttons: Download, WhatsApp Share, Instagram Share, TikTok Guide, Reset */}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-2 w-full min-w-0">
+        
+        {/* Download Button */}
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
@@ -327,6 +379,7 @@ export default function ResultComparison({
           </button>
         </div>
 
+        {/* TikTok Guide Button if TikTok preset */}
         {preset?.id === 'tiktok' && onOpenTikTokGuide && (
           <div className="tetris-btn-wrap w-full sm:w-auto">
             <button
@@ -341,6 +394,7 @@ export default function ResultComparison({
           </div>
         )}
 
+        {/* WhatsApp Share Button */}
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
@@ -353,6 +407,7 @@ export default function ResultComparison({
           </button>
         </div>
 
+        {/* Instagram Share Button */}
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
@@ -365,16 +420,32 @@ export default function ResultComparison({
           </button>
         </div>
 
+        {/* Change Preset (Same Footage) */}
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
-            onClick={onReset}
-            className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs font-black uppercase tracking-wider bg-white hover:bg-slate-100 text-slate-900 border-2 border-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            onClick={() => handleTriggerChangePreset()}
+            className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs font-black uppercase tracking-wider bg-[#fef08a] hover:bg-[#fde047] text-slate-900 border-2 border-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            title="Ganti preset kompresi menggunakan footage yang sama"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-            <span className="truncate">Kompres Lagi</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+            <span className="truncate">Ganti Preset (File Sama)</span>
           </button>
         </div>
+
+        {/* Upload New File Button */}
+        <div className="tetris-btn-wrap w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleTriggerResetNew}
+            className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs font-black uppercase tracking-wider bg-white hover:bg-slate-100 text-slate-900 border-2 border-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            title="Pilih file video atau foto lain dari perangkat"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+            <span className="truncate">Pilih File Baru</span>
+          </button>
+        </div>
+
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import Footer from './components/Footer';
 
 import { PRESETS, getPresetById } from './constants/presets';
 import { getFFmpegInstance, processVideo, processPPHD } from './services/ffmpegEngine';
+import { requestScreenWakeLock, releaseScreenWakeLock, subscribeWakeLock } from './services/wakeLockService';
 
 export default function App() {
   // Engine States
@@ -31,6 +32,7 @@ export default function App() {
   const [selectedPresetId, setSelectedPresetId] = useState('khususwa');
   const [showTikTokGuide, setShowTikTokGuide] = useState(false);
   const [liveStats, setLiveStats] = useState({ fps: '', speed: '' });
+  const [isWakeLockOn, setIsWakeLockOn] = useState(false);
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
     preset: 'veryfast',
@@ -52,6 +54,14 @@ export default function App() {
   const [result, setResult] = useState(null);
 
   const timerRef = useRef(null);
+  const logBufferRef = useRef([]);
+  const logFlushTimeoutRef = useRef(null);
+
+  // Screen WakeLock Subscriber (Mencegah layar HP mati)
+  useEffect(() => {
+    const unsub = subscribeWakeLock(setIsWakeLockOn);
+    return unsub;
+  }, []);
 
   // Pre-load FFmpeg Engine gracefully in background
   useEffect(() => {
@@ -101,8 +111,38 @@ export default function App() {
     setError(null);
   };
 
+  // Cleanup log flush timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (logFlushTimeoutRef.current) {
+        clearTimeout(logFlushTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const appendLog = (message) => {
-    setLogs(prev => [...prev.slice(-80), message]);
+    logBufferRef.current.push(message);
+    if (!logFlushTimeoutRef.current) {
+      logFlushTimeoutRef.current = setTimeout(() => {
+        const buffered = logBufferRef.current;
+        logBufferRef.current = [];
+        logFlushTimeoutRef.current = null;
+        if (buffered.length > 0) {
+          setLogs(prev => {
+            const next = [...prev, ...buffered];
+            return next.length > 80 ? next.slice(-80) : next;
+          });
+        }
+      }, 150);
+    }
+  };
+
+  const handleChangePresetSameFile = (presetId = null) => {
+    if (presetId) {
+      setSelectedPresetId(presetId);
+    }
+    setResult(null);
+    setError(null);
   };
 
   const handleStartCompression = async () => {
@@ -112,9 +152,13 @@ export default function App() {
     setIsProcessing(true);
     setProgress(0);
     setLogs([]);
+    logBufferRef.current = [];
     setElapsedSeconds(0);
     setLiveStats({ fps: '', speed: '' });
     setStatusText('Mempersiapkan engine WebAssembly...');
+
+    // Request Screen Wake Lock so mobile display does not sleep
+    await requestScreenWakeLock();
 
     // Start Timer
     timerRef.current = setInterval(() => {
@@ -162,10 +206,7 @@ export default function App() {
               setStatusText(text);
             } else {
               const pct = Math.round(currentRatio * 100);
-              let status = `Sedang merender video (${pct}%)...`;
-              if (fps) status += ` • ${fps} FPS`;
-              if (speed) status += ` • Speed ${speed}`;
-              setStatusText(status);
+              setStatusText(`Sedang merender video (${pct}%)...`);
             }
           },
           onLog: (msg) => {
@@ -181,7 +222,20 @@ export default function App() {
       console.error('[Compression Error]', err);
       setError(err.message || 'Terjadi kesalahan saat memproses video.');
     } finally {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (logFlushTimeoutRef.current) {
+        clearTimeout(logFlushTimeoutRef.current);
+        logFlushTimeoutRef.current = null;
+      }
+      if (logBufferRef.current.length > 0) {
+        const remaining = logBufferRef.current;
+        logBufferRef.current = [];
+        setLogs(prev => [...prev, ...remaining].slice(-80));
+      }
+      await releaseScreenWakeLock();
       setIsProcessing(false);
     }
   };
@@ -191,7 +245,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col font-sans tetris-grid-bg text-slate-900 selection:bg-[#fef08a] selection:text-slate-900">
       {/* Navigation Bar */}
-      <Navbar engineStatus={engineStatus} />
+      <Navbar engineStatus={engineStatus} isWakeLockOn={isWakeLockOn} />
 
       {/* Main Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 min-w-0">
@@ -356,6 +410,7 @@ export default function App() {
               logs={logs}
               elapsedSeconds={elapsedSeconds}
               liveStats={liveStats}
+              isWakeLockOn={isWakeLockOn}
             />
           </div>
         )}
@@ -369,11 +424,9 @@ export default function App() {
               result={result}
               preset={activePresetObj}
               onOpenTikTokGuide={() => setShowTikTokGuide(true)}
-              onReset={() => {
-                setResult(null);
-                setSelectedFile(null);
-                setFileMetadata(null);
-              }}
+              onChangePreset={handleChangePresetSameFile}
+              onResetNewFile={handleClearFile}
+              onReset={handleClearFile}
             />
           </div>
         )}

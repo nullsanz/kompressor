@@ -123,7 +123,18 @@ export async function processVideo({
 
   // Pasang logger & progress tracker cerdas
   let lastReportedRatio = 0.05;
-  onProgress({ ratio: 0.05, text: 'Memuat video ke memori WebAssembly...' });
+  let lastFps = '';
+  let lastSpeed = '';
+  let lastFrame = '';
+  let lastStatusMsg = 'Memuat video ke memori WebAssembly...';
+
+  onProgress({ 
+    ratio: 0.05, 
+    fps: '', 
+    speed: '', 
+    frame: '', 
+    text: lastStatusMsg 
+  });
 
   const customLogWrapper = (message) => {
     if (onLog) onLog(message);
@@ -169,20 +180,19 @@ export async function processVideo({
 
       lastReportedRatio = ratio;
       const pct = Math.round(ratio * 100);
-      const fps = fpsMatch ? fpsMatch[1] : null;
-      const speed = speedMatch ? speedMatch[1] : null;
-      const frame = frameMatch ? frameMatch[1] : null;
+      if (fpsMatch) lastFps = fpsMatch[1];
+      if (speedMatch) lastSpeed = `${speedMatch[1]}x`;
+      if (frameMatch) lastFrame = frameMatch[1];
 
       let statusMsg = `Sedang merender video (${pct}%)...`;
-      if (frame) statusMsg = `Merender frame ${frame} (${pct}%)...`;
-      if (fps) statusMsg += ` • ${fps} FPS`;
-      if (speed) statusMsg += ` • Speed ${speed}x`;
+      if (lastFrame) statusMsg = `Merender frame ${lastFrame} (${pct}%)...`;
+      lastStatusMsg = statusMsg;
 
       onProgress({
         ratio,
-        fps,
-        speed: speed ? `${speed}x` : null,
-        frame,
+        fps: lastFps,
+        speed: lastSpeed,
+        frame: lastFrame,
         timeSec: currentSec,
         duration: effectiveDuration,
         text: statusMsg
@@ -192,15 +202,25 @@ export async function processVideo({
 
   const customProgressWrapper = ({ progress, time }) => {
     const effectiveDuration = detectedDuration > 0 ? detectedDuration : 30;
+    let ratio = lastReportedRatio;
+
     if (typeof progress === 'number' && progress > 0 && progress <= 1) {
-      const ratio = Math.min(0.95, Math.max(lastReportedRatio, progress));
-      lastReportedRatio = ratio;
-      onProgress({ ratio });
+      ratio = Math.min(0.95, Math.max(lastReportedRatio, progress));
     } else if (typeof time === 'number' && time > 0 && effectiveDuration > 0) {
       const timeSec = time > 100000 ? time / 1000000 : time;
-      const ratio = Math.min(0.95, Math.max(lastReportedRatio, timeSec / effectiveDuration));
+      ratio = Math.min(0.95, Math.max(lastReportedRatio, timeSec / effectiveDuration));
+    }
+
+    if (ratio > lastReportedRatio) {
       lastReportedRatio = ratio;
-      onProgress({ ratio, timeSec, duration: effectiveDuration });
+      const pct = Math.round(ratio * 100);
+      onProgress({
+        ratio,
+        fps: lastFps,
+        speed: lastSpeed,
+        frame: lastFrame,
+        text: lastFrame ? `Merender frame ${lastFrame} (${pct}%)...` : `Sedang merender video (${pct}%)...`
+      });
     }
   };
 
@@ -285,21 +305,24 @@ export async function processVideo({
   // Output container
   args.push(outputName);
 
-  onLog(`[FFmpeg Command] ffmpeg ${args.join(' ')}`);
-  onLog(`[Engine] Memulai pemrosesan video di browser...`);
-
-  // Eksekusi
-  await instance.exec(args);
-
-  onLog(`[Engine] Eksekusi FFmpeg selesai. Membaca hasil kompresi...`);
-  onProgress({ ratio: 0.96, text: 'Membaca hasil render...' });
-  let outputData = await instance.readFile(outputName);
-
-  // Cleanup virtual files di WASM FS
+  let outputData = null;
   try {
-    await instance.deleteFile(inputName);
-    await instance.deleteFile(outputName);
-  } catch (_) {}
+    onLog(`[FFmpeg Command] ffmpeg ${args.join(' ')}`);
+    onLog(`[Engine] Memulai pemrosesan video di browser...`);
+
+    // Eksekusi
+    await instance.exec(args);
+
+    onLog(`[Engine] Eksekusi FFmpeg selesai. Membaca hasil kompresi...`);
+    onProgress({ ratio: 0.96, text: 'Membaca hasil render...' });
+    outputData = await instance.readFile(outputName);
+  } finally {
+    // Selalu bersihkan file virtual di WASM FS bahkan jika proses error
+    try { await instance.deleteFile(inputName); } catch (_) {}
+    try { await instance.deleteFile(outputName); } catch (_) {}
+    // Lepas callback aktif agar tidak bocor ke pemrosesan berikutnya
+    setActiveCallbacks(null, null);
+  }
 
   onProgress({ ratio: 1.0, text: 'Selesai!' });
 
@@ -368,16 +391,18 @@ export async function processPPHD({
   args.push('-q:v', '1'); // Kualitas JPEG Lossless maksimal
   args.push(outputName);
 
-  onLog(`[PPHD Command] ffmpeg ${args.join(' ')}`);
-  if (onProgress) onProgress({ ratio: 0.5, text: 'Memotong 1:1 & Menajamkan Lanczos...' });
-  await instance.exec(args);
-
-  const outputData = await instance.readFile(outputName);
-
+  let outputData = null;
   try {
-    await instance.deleteFile(inputName);
-    await instance.deleteFile(outputName);
-  } catch (_) {}
+    onLog(`[PPHD Command] ffmpeg ${args.join(' ')}`);
+    if (onProgress) onProgress({ ratio: 0.5, text: 'Memotong 1:1 & Menajamkan Lanczos...' });
+    await instance.exec(args);
+
+    outputData = await instance.readFile(outputName);
+  } finally {
+    try { await instance.deleteFile(inputName); } catch (_) {}
+    try { await instance.deleteFile(outputName); } catch (_) {}
+    setActiveCallbacks(null, null);
+  }
 
   if (onProgress) onProgress({ ratio: 1.0, text: 'Selesai!' });
 

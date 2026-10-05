@@ -30,7 +30,7 @@ export default function Footer() {
           <div className="flex items-center gap-1.5 flex-wrap justify-center text-slate-600">
             <span>Anull Kompresor HD Studio • Bagian dari ekosistem</span>
             <a 
-              href="https://null.cloud" 
+              href="https://anull.cloud" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="font-black text-slate-900 hover:underline flex items-center gap-0.5 border-b-2 border-slate-900"
