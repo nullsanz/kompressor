@@ -17,7 +17,7 @@ import ResultComparison from './components/ResultComparison';
 import Footer from './components/Footer';
 
 import { PRESETS, getPresetById } from './constants/presets';
-import { getFFmpegInstance, processVideo, processPPHD, processInstantPatch } from './services/ffmpegEngine';
+import { getFFmpegInstance, processVideo, processPPHD } from './services/ffmpegEngine';
 
 export default function App() {
   // Engine States
@@ -27,7 +27,7 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileMetadata, setFileMetadata] = useState(null);
   const [trimRange, setTrimRange] = useState({ start: 0, end: 30, duration: 30 });
-  const [selectedPresetId, setSelectedPresetId] = useState('hdrbrutalsilau');
+  const [selectedPresetId, setSelectedPresetId] = useState('khususwa');
   const [liveStats, setLiveStats] = useState({ fps: '', speed: '' });
   const [customSettings, setCustomSettings] = useState({
     crf: 23,
@@ -86,12 +86,7 @@ export default function App() {
         end: defaultEnd,
         duration: metadata.duration
       });
-      // Jika HEVC (H.265), otomatis pilih 'fastpatch' untuk Layar Silau EDR 4000 Nits
-      if (metadata.isHevc) {
-        setSelectedPresetId('fastpatch');
-      } else {
-        setSelectedPresetId('hdrbrutalsilau');
-      }
+      setSelectedPresetId('khususwa');
     } else {
       setSelectedPresetId('pphd');
     }
@@ -111,14 +106,6 @@ export default function App() {
   const handleStartCompression = async () => {
     if (!selectedFile) return;
 
-    // Guard: Mencegah user menjalankan fastpatch pada video H.264
-    if (selectedPresetId === 'fastpatch' && fileMetadata?.type === 'video' && !fileMetadata?.isHevc) {
-      setError(
-        'Format video ini adalah H.264 (bukan HEVC). Layar HP (iPhone & Android AMOLED) hanya memicu peningkatan kecerahan Layar Silau EDR (4000 Nits) pada format HEVC / H.265. Silakan export video Anda dari CapCut dengan memilih Codec "H.265 / HEVC", atau pilih preset "TikTok JJ Ultra HD 60 FPS" untuk kompresi biasa.'
-      );
-      return;
-    }
-
     setError(null);
     setIsProcessing(true);
     setProgress(0);
@@ -137,20 +124,7 @@ export default function App() {
       const isImage = fileMetadata?.type === 'image';
       let res = null;
 
-      if (selectedPresetId === 'fastpatch') {
-        // Mode Instan Patch Dolby Vision Profile 8.4 (0 Detik / Tanpa Render)
-        setStatusText('Menyuntikkan atom Dolby Vision Profile 8.4 ke file MP4...');
-        res = await processInstantPatch({
-          file: selectedFile,
-          onProgress: ({ ratio, text }) => {
-            if (typeof ratio === 'number') setProgress(ratio);
-            if (text) setStatusText(text);
-          },
-          onLog: (msg) => {
-            appendLog(msg);
-          }
-        });
-      } else if (selectedPresetId === 'pphd' && (isImage || fileMetadata?.type === 'video')) {
+      if (selectedPresetId === 'pphd' && (isImage || fileMetadata?.type === 'video')) {
         // Foto Profil WA 1:1
         setStatusText('Memproses foto profil 1080x1080 Lanczos Pre-Sharpening...');
         res = await processPPHD({
@@ -231,35 +205,35 @@ export default function App() {
             <h2 className="font-heading text-4xl sm:text-6xl text-slate-900 tracking-wide uppercase leading-tight">
               Kompres Video Status WA &amp; Story IG <br />
               <span className="bg-[#fef08a] px-3 py-0.5 border-3 border-slate-900 rounded-md shadow-[3px_3px_0px_0px_#111827] inline-block">
-                Ultra HD &amp; Dolby Vision 8.4 Silau
+                Ultra HD &amp; 60 FPS Anti-Buram
               </span>
             </h2>
 
             <p className="text-sm sm:text-base leading-relaxed text-slate-600 font-medium max-w-2xl mx-auto">
-              Bypass algoritma kompresi WhatsApp, Instagram &amp; TikTok langsung di browser Anda. Monster bitrate 30 Mbps, 60 FPS murni, injeksi Dolby Vision Profile 8.4 EDR (Layar Silau), dan 100% diproses di perangkat lokal tanpa upload ke server.
+              Bypass algoritma kompresi WhatsApp, Instagram &amp; TikTok langsung di browser Anda. Monster bitrate hingga 30 Mbps, 60 FPS murni, penajaman Lanczos, dan 100% diproses di perangkat lokal tanpa antrean server.
             </p>
 
             {/* Badges Strip (Blocky arcade style) */}
             <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap text-xs font-black uppercase">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                <span>Status WA 1080p HD</span>
+              </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fef08a] border-2 border-slate-900 text-amber-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <Sparkles className="w-4 h-4 text-amber-700" />
-                <span>Dolby Vision 8.4 (Layar Silau)</span>
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#cffafe] border-2 border-slate-900 text-cyan-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
-                <Zap className="w-4 h-4 text-cyan-700" />
-                <span>Instan Patch 0 Detik</span>
+                <span>WA Kinclong Luminescence</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-purple-700" />
-                <span>Story IG 15M &amp; 30k</span>
+                <span>Story IG 30 Mbps 60 FPS</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ffe4e6] border-2 border-slate-900 text-rose-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <CheckCircle2 className="w-4 h-4 text-rose-700" />
-                <span>TikTok 30 Mbps Monster</span>
+                <span>TikTok 9:16 Anti-Blur</span>
               </span>
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                <span>Status WA Pseudo-HDR</span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#cffafe] border-2 border-slate-900 text-cyan-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
+                <Zap className="w-4 h-4 text-cyan-700" />
+                <span>Profil WA 1:1 HD</span>
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbeafe] border-2 border-slate-900 text-blue-950 rounded-md shadow-[2px_2px_0px_0px_#111827]">
                 <ShieldCheck className="w-4 h-4 text-blue-700" />

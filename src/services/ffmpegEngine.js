@@ -1,6 +1,5 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import { patchVideoDolbyVision, detectMp4Codec } from './dolbyVisionPatcher.js';
 
 let ffmpeg = null;
 let isLoaded = false;
@@ -302,19 +301,6 @@ export async function processVideo({
     await instance.deleteFile(outputName);
   } catch (_) {}
 
-  // Jika preset Dolby Vision (hdrbrutalsilau / hdrsupersilau / hdrsilau / hdrig / isDolbyVision), suntikkan atom dvvC & container refinery
-  if (preset.isDolbyVision || preset.id === 'hdrbrutalsilau' || preset.id === 'hdrsupersilau' || preset.id === 'hdrsilau' || preset.id === 'hdrig') {
-    try {
-      onLog(`[Dolby Vision 8.4] Menginjeksikan atom dvvC (DOVIDecoderConfigurationRecord) & Apple QuickTime brand...`);
-      onProgress({ ratio: 0.98, text: 'Menginjeksikan Dolby Vision Profile 8.4...' });
-      outputData = await patchVideoDolbyVision(outputData);
-      onLog(`[Dolby Vision 8.4] ✅ Atom Dolby Vision 8.4 & container refinery berhasil disuntikkan!`);
-    } catch (patchErr) {
-      console.warn('[DOVI INJECTION WARNING]', patchErr);
-      onLog(`[Dolby Vision 8.4] ⚠️ Injeksi Dolby Vision dilewati: ${patchErr.message}`);
-    }
-  }
-
   onProgress({ ratio: 1.0, text: 'Selesai!' });
 
   const outputBlob = new Blob([outputData.buffer || outputData], { type: 'video/mp4' });
@@ -335,58 +321,6 @@ export async function processVideo({
   };
 }
 
-/**
- * Instan Patch Dolby Vision 8.4 (Tanpa Render / 0.1 Detik)
- * Standar Industri quietvoid/dovi_tool:
- * - Menyuntikkan NAL 62 Dolby Vision RPU (L1 MaxCLL: 4000 nits, L2 neutral trims, zero MMR distortion)
- * - Menyuntikkan atom dvvC (32 bytes, Profile 8.4 HLG) ke stsd/hvc1
- * - Normalisasi durasi container & FastStart [ftyp] -> [moov] -> [mdat]
- */
-export async function processInstantPatch({
-  file,
-  onProgress,
-  onLog
-}) {
-  onLog(`[Instant Dolby Vision] Membaca file "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB) langsung ke memory buffer...`);
-  if (onProgress) onProgress({ ratio: 0.2, text: 'Membaca video ke memori...' });
-
-  const arrayBuffer = await file.arrayBuffer();
-  const u8Input = new Uint8Array(arrayBuffer);
-
-  const codecInfo = detectMp4Codec(u8Input);
-  if (!codecInfo.isHevc) {
-    throw new Error(
-      `Format video ini adalah ${codecInfo.codec} (Bukan HEVC). Layar HP (iPhone & Android AMOLED) hanya memicu peningkatan kecerahan Layar Silau EDR (4000 Nits) pada format HEVC / H.265. Silakan export ulang video Anda di CapCut / Premiere dengan memilih Codec "H.265 / HEVC", lalu masukkan ke sini!`
-    );
-  }
-
-  if (onProgress) onProgress({ ratio: 0.4, text: 'Menganalisis bitstream HEVC & NAL units...' });
-  onLog(`[Instant Dolby Vision] Membedah struktur atom MP4 dan bitstream video HEVC...`);
-
-  const patched = await patchVideoDolbyVision(u8Input);
-  if (onProgress) onProgress({ ratio: 0.85, text: 'Menormalisasi durasi container & FastStart...' });
-
-  onLog(`[Instant Dolby Vision] ✅ Dolby Vision Profile 8.4 (4000 Nits EDR) & container refinery berhasil disuntikkan!`);
-  if (onProgress) onProgress({ ratio: 1.0, text: 'Selesai!' });
-
-  const outputBlob = new Blob([patched], { type: 'video/mp4' });
-  const outputUrl = URL.createObjectURL(outputBlob);
-
-  const baseName = (file.name || 'video')
-    .replace(/\.[^/.]+$/, '')
-    .replace(/[^a-zA-Z0-9_-]/g, '_')
-    .substring(0, 30);
-
-  return {
-    blob: outputBlob,
-    url: outputUrl,
-    size: outputBlob.size,
-    name: `${baseName}_DOLBY_VISION_SILAU_4000NITS.mp4`,
-    isDolbyVision: true,
-    isHevc: true,
-    peakNits: 4000
-  };
-}
 
 /**
  * Ekstraksi Foto Profil WA 1:1 HD (PPHD)

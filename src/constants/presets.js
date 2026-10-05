@@ -1,109 +1,53 @@
 /**
- * Master Preset FFmpeg Kompresor Anull (WASM Ultra-Fast + Dolby Vision Profile 8.4)
+ * Master Preset FFmpeg Kompresor Anull (WASM Ultra-Fast Studio SDR)
  * Direplikasi 100% dari bot-status-wa & bot-loker-bray
- * Dilengkapi Dynamic Luminescence, Contrast Boost, & Dolby Vision dvvC Injector
+ * Fokus kualitas kristal murni untuk WhatsApp Status, Story IG & TikTok
  */
 
 export const PRESETS = [
   {
-    id: 'fastpatch',
-    name: '⚡ Instan Patch Dolby Vision 8.4 (Layar Silau EDR 4000 Nits)',
-    commandRef: 'Tanpa Render / 0.1 Detik',
-    badge: 'Paling Terang • 4000 Nits EDR',
-    badgeColor: 'cyan',
-    icon: 'Zap',
-    isInstantPatch: true,
-    isDolbyVision: true,
-    description: 'Standar Industri quietvoid/dovi_tool: Menyuntikkan NAL 62 RPU (MaxCLL 4000 Nits EDR + L2 Neutral Trims) + colr HLG + atom dvvC ke video HEVC tanpa render ulang! Hanya butuh 0.1 detik, 100% warna natural tanpa muka merah bata & memicu backlight silau maksimal di layar iPhone & AMOLED Android! (⚠️ WAJIB: Video hasil export CapCut dengan format H.265 / HEVC).',
-    target: 'Video HEVC Jadi Dolby Vision Asli 4000 Nits',
-    resolutionLabel: 'Kualitas Asli 100% Lossless (0.1 Detik)'
-  },
-  {
-    id: 'hdrbrutalsilau',
-    name: 'TikTok JJ Dolby Vision Brutal Silau (4000 Nits EDR)',
-    commandRef: '.hdrbrutalsilau / .hdrsilau',
-    badge: 'Brutal Silau • 4000 Nits Overdrive',
-    badgeColor: 'amber',
-    icon: 'Zap',
-    isDolbyVision: true,
-    description: 'Formula Brutal Silau 4000 Nits EDR Overdrive Maksimal: Menarik highlights lampu, flash JJ, dan pantulan ke tingkat silau maksimal (4000 Nits EDR) dengan warna kulit bersih natural tanpa muka merah! Memaksa panel AMOLED & iPhone membuka seluruh kecerahan backlight.',
-    target: 'TikTok JJ & FYP (Dolby Vision 4000 Nits)',
-    resolutionLabel: '1080x1920 Vertikal 9:16 (35 Mbps)',
-    crf: 17,
-    preset: 'ultrafast',
-    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,setsar=1,curves=all='0/0 0.10/0.17 0.20/0.29 0.40/0.53 0.55/0.80 0.68/0.96 0.76/1.0 1/1',eq=saturation=1.05,unsharp=3:3:0.9:3:3:0.0",
-    fps: 60,
-    audioBitrate: '192k',
-    audioSampleRate: '48000',
-    extraArgs: [
-      '-profile:v', 'high',
-      '-level', '4.2',
-      '-maxrate', '35000k',
-      '-bufsize', '70000k',
-      '-pix_fmt', 'yuv420p',
-      '-g', '60',
-      '-keyint_min', '30',
-      '-brand', 'isom',
-      '-max_interleave_delta', '0',
-      '-movflags', '+faststart'
-    ]
-  },
-  {
-    id: 'hdrsupersilau',
-    name: 'TikTok JJ Dolby Vision Super Silau (2000 Nits Aesthetic)',
-    commandRef: '.hdrsupersilau / .smarthdr',
-    badge: 'Super Silau • 2000 Nits Punch',
+    id: 'khususwa',
+    name: 'Status WA HD Standar (1080p)',
+    commandRef: '.khususwa / .1080p / .asli',
+    badge: 'Paling Populer • Anti-Buram',
     badgeColor: 'emerald',
-    icon: 'Sparkles',
-    isDolbyVision: true,
-    description: 'Formula Super Silau 2000 Nits EDR (Wanxzyy Aesthetic Edition): Menarik highlights di atas 60% IRE, nembus putih terang di 0.88 IRE. Midtones wajah sangat lembut glowing di 48% IRE. Hasil video sangat seimbang, mengkilap estetik, dan nyaman di mata.',
-    target: 'TikTok & IG (Dolby Vision 2000 Nits Aesthetic)',
-    resolutionLabel: '1080x1920 Vertikal 9:16 (35 Mbps)',
-    crf: 17,
+    icon: 'MessageCircle',
+    description: 'Format tajam maksimal 1080p standar WhatsApp Status. Ukuran file efisien dan kompatibel dengan semua versi WhatsApp tanpa kompresi blur server WA.',
+    target: 'WhatsApp Status & Chat',
+    resolutionLabel: '1080p Full HD (Max 1920px)',
+    crf: 23,
     preset: 'ultrafast',
-    scaleFilter: "scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:trunc((1080-iw)/2):trunc((1920-ih)/2):black,setsar=1,curves=all='0/0 0.20/0.24 0.40/0.48 0.60/0.74 0.75/0.92 0.88/1.0 1/1',eq=saturation=0.82,unsharp=3:3:0.8:3:3:0.0",
-    fps: 60,
-    audioBitrate: '192k',
-    audioSampleRate: '48000',
+    scaleFilter: "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))'",
+    audioBitrate: '64k',
+    audioSampleRate: '44100',
     extraArgs: [
       '-profile:v', 'high',
-      '-level', '4.2',
-      '-maxrate', '35000k',
-      '-bufsize', '70000k',
+      '-level', '4.1',
       '-pix_fmt', 'yuv420p',
-      '-g', '60',
-      '-keyint_min', '30',
-      '-brand', 'isom',
       '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
   },
   {
-    id: 'hdrig',
-    name: 'Story & Reels IG Dolby Vision Silau (15 Mbps)',
-    commandRef: '.hdrig / .sghdr',
-    badge: 'Brutal Silau • Sweet Spot Meta',
-    badgeColor: 'purple',
-    icon: 'Instagram',
-    isDolbyVision: true,
-    description: 'Formula Brutal Silau 4000 Nits EDR untuk Instagram Story & Reels: Mengoptimalkan kontras & highlights silau mengkilap dengan bitrate 15 Mbps Sweet Spot anti-kompres Meta. Kulit wajah tetap cerah bening alami.',
-    target: 'Instagram Story & Reels',
-    resolutionLabel: 'Resolusi Asli @ 60 FPS (15 Mbps)',
-    crf: 17,
+    id: 'hdrwa',
+    name: 'Status WA Kinclong (Luminescence)',
+    commandRef: '.hdrwa / .swhdr',
+    badge: '1080p Kinclong Maksimal',
+    badgeColor: 'emerald',
+    icon: 'MessageCircle',
+    description: 'Ekspansi kurva luminansi & kontras Status WA 1080p 60 FPS. Video tampil paling cerah, tajam, dan kinclong dibanding status lain tanpa distorsi buram WA.',
+    target: 'WhatsApp Status (Kinclong)',
+    resolutionLabel: '1080p Full HD @ 60 FPS',
+    crf: 20,
     preset: 'ultrafast',
-    scaleFilter: "scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,curves=all='0/0 0.10/0.17 0.20/0.29 0.40/0.53 0.55/0.80 0.68/0.96 0.76/1.0 1/1',eq=saturation=1.05,unsharp=3:3:0.9:3:3:0.0",
+    scaleFilter: "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))',unsharp=3:3:0.7:3:3:0.4,eq=brightness=0.03:contrast=1.12:saturation=1.20",
     fps: 60,
-    audioBitrate: '192k',
-    audioSampleRate: '48000',
+    audioBitrate: '96k',
+    audioSampleRate: '44100',
     extraArgs: [
       '-profile:v', 'high',
-      '-level', '4.2',
-      '-maxrate', '15000k',
-      '-bufsize', '30000k',
+      '-level', '4.1',
       '-pix_fmt', 'yuv420p',
-      '-g', '60',
-      '-keyint_min', '30',
-      '-brand', 'isom',
       '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
@@ -115,7 +59,7 @@ export const PRESETS = [
     badge: 'Monster Bitrate 30 Mbps',
     badgeColor: 'purple',
     icon: 'Instagram',
-    description: 'Bitrate monster 30 Mbps SDR Rec.709 standar studio. Kualitas video kristal tajam, kontras jernih, dan 0% risiko redup di layar HP follower non-AMOLED.',
+    description: 'Bitrate monster 30 Mbps SDR Rec.709 standar studio 60 FPS. Kualitas video kristal tajam, kontras jernih, dan 0% risiko redup di layar follower Instagram.',
     target: 'Instagram Story & Reels',
     resolutionLabel: 'Resolusi Asli @ 60 FPS (30 Mbps)',
     crf: 16,
@@ -162,53 +106,6 @@ export const PRESETS = [
       '-g', '60',
       '-keyint_min', '30',
       '-brand', 'mp42',
-      '-max_interleave_delta', '0',
-      '-movflags', '+faststart'
-    ]
-  },
-  {
-    id: 'hdrwa',
-    name: 'Status WA Pseudo-HDR Luminescence',
-    commandRef: '.hdrwa / .swhdr',
-    badge: '1080p Kinclong Maksimal',
-    badgeColor: 'emerald',
-    icon: 'MessageCircle',
-    description: 'Ekspansi kurva luminansi & kontras Status WA 1080p 60 FPS. Video tampil paling cerah, tajam, dan kinclong dibanding status lain tanpa distorsi buram WA.',
-    target: 'WhatsApp Status (Kinclong)',
-    resolutionLabel: '1080p Full HD @ 60 FPS',
-    crf: 20,
-    preset: 'ultrafast',
-    scaleFilter: "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))',unsharp=3:3:0.7:3:3:0.4,eq=brightness=0.03:contrast=1.12:saturation=1.20",
-    fps: 60,
-    audioBitrate: '96k',
-    audioSampleRate: '44100',
-    extraArgs: [
-      '-profile:v', 'high',
-      '-level', '4.1',
-      '-pix_fmt', 'yuv420p',
-      '-max_interleave_delta', '0',
-      '-movflags', '+faststart'
-    ]
-  },
-  {
-    id: 'khususwa',
-    name: 'Status WA HD Standar (1080p)',
-    commandRef: '.khususwa / .1080p / .asli',
-    badge: 'Paling Populer',
-    badgeColor: 'emerald',
-    icon: 'MessageCircle',
-    description: 'Format tajam maksimal 1080p standar WhatsApp Status. Ukuran file efisien dan kompatibel dengan semua versi WhatsApp.',
-    target: 'WhatsApp Status & Chat',
-    resolutionLabel: '1080p Full HD (Max 1920px)',
-    crf: 23,
-    preset: 'ultrafast',
-    scaleFilter: "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))'",
-    audioBitrate: '64k',
-    audioSampleRate: '44100',
-    extraArgs: [
-      '-profile:v', 'high',
-      '-level', '4.1',
-      '-pix_fmt', 'yuv420p',
       '-max_interleave_delta', '0',
       '-movflags', '+faststart'
     ]
@@ -285,6 +182,5 @@ export const DURATION_LIMITS = [
 
 export function getPresetById(id) {
   if (!id) return PRESETS[0];
-  if (id === 'hdrsilau') return PRESETS.find(p => p.id === 'hdrbrutalsilau') || PRESETS[0];
   return PRESETS.find(p => p.id === id) || PRESETS[0];
 }

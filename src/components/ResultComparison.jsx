@@ -5,7 +5,8 @@ import {
   CheckCircle2, 
   TrendingDown, 
   Film,
-  MessageCircle
+  MessageCircle,
+  Instagram
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -49,6 +50,79 @@ export default function ResultComparison({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  const handleShareWhatsApp = async () => {
+    // 1. Download file otomatis agar tersimpan di galeri
+    handleDownload();
+
+    // 2. Coba Web Share API dengan file langsung jika didukung browser HP
+    if (result?.blob && navigator.canShare) {
+      try {
+        const fileToShare = new File(
+          [result.blob], 
+          result.name || 'video_kompres_hd.mp4', 
+          { type: result.blob.type || (isImageResult ? 'image/jpeg' : 'video/mp4') }
+        );
+        if (navigator.canShare({ files: [fileToShare] })) {
+          await navigator.share({
+            files: [fileToShare],
+            title: 'Kirim ke WhatsApp',
+            text: 'Video HD siap untuk Status WhatsApp!'
+          });
+          return;
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Web Share API fallback:', err);
+      }
+    }
+
+    // 3. Fallback: Buka aplikasi WhatsApp langsung di mobile atau WhatsApp Web di desktop
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = 'whatsapp://send';
+    } else {
+      window.open('https://web.whatsapp.com', '_blank');
+    }
+  };
+
+  const handleShareInstagram = async () => {
+    // 1. Download file otomatis agar tersimpan di galeri
+    handleDownload();
+
+    // 2. Web Share API jika didukung (di HP akan memunculkan pilihan aplikasi Instagram Story/Reels)
+    if (result?.blob && navigator.canShare) {
+      try {
+        const fileToShare = new File(
+          [result.blob], 
+          result.name || 'video_kompres_hd.mp4', 
+          { type: result.blob.type || (isImageResult ? 'image/jpeg' : 'video/mp4') }
+        );
+        if (navigator.canShare({ files: [fileToShare] })) {
+          await navigator.share({
+            files: [fileToShare],
+            title: 'Kirim ke Instagram',
+            text: 'Video HD siap untuk Story Instagram!'
+          });
+          return;
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Web Share Instagram fallback:', err);
+      }
+    }
+
+    // 3. Fallback: Buka Instagram di HP atau Web
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = 'instagram://story-camera';
+      setTimeout(() => {
+        window.open('https://www.instagram.com', '_blank');
+      }, 1200);
+    } else {
+      window.open('https://www.instagram.com', '_blank');
+    }
   };
 
   const isImageResult = result?.blob?.type?.startsWith('image/');
@@ -186,73 +260,78 @@ export default function ResultComparison({
         )}
       </div>
 
-      {/* Dolby Vision 8.4 EDR vs Ultra HD 60 FPS Verification Banner */}
-      {!isImageResult && (result?.isDolbyVision || (preset?.id === 'fastpatch' && fileMetadata?.isHevc)) ? (
+      {/* Ultra HD 60 FPS Status WA & Story IG Verification Banner */}
+      {!isImageResult ? (
+        <div className="p-3.5 bg-[#d0fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+          <span className="text-xl shrink-0 mt-0.5">🚀</span>
+          <div className="flex-1 min-w-0">
+            <strong className="font-heading text-sm text-emerald-950 block uppercase tracking-wide">
+              Video Ultra HD Siap untuk Status WA &amp; Story IG!
+            </strong>
+            <p className="text-[11px] text-emerald-900 leading-snug mt-0.5">
+              Encoding libx264 High Profile, faststart atom, dan tuned bitrate aktif. Kualitas video terjaga tajam dan 100% bebas pecah saat diunggah ke WhatsApp, Instagram Story, maupun TikTok.
+            </p>
+          </div>
+        </div>
+      ) : (
         <div className="p-3.5 bg-[#cffafe] border-2 border-slate-900 rounded-lg text-xs text-cyan-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-2xl shrink-0 mt-0.5">✨</span>
+          <span className="text-xl shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
             <strong className="font-heading text-sm text-cyan-950 block uppercase tracking-wide">
-              Dolby Vision Profile 8.4 EDR (4000 Nits Layar Silau) Aktif!
+              Foto Profil 1:1 HD Siap Pakai!
             </strong>
             <p className="text-[11px] text-cyan-900 leading-snug mt-0.5">
-              Standar <em>quietvoid/dovi_tool</em>: Layar HP OLED / HDR (iPhone &amp; Samsung Galaxy / Xiaomi AMOLED) otomatis mendongkrak backlight EDR peak silau hingga 1000–4000 nits dengan warna 100% natural tanpa muka merah bata.
+              Resolusi 1080x1080 bujur sangkar dengan filter Lanczos Pre-Sharpening siap dijadikan foto profil WhatsApp tanpa terpotong atau buram.
             </p>
           </div>
         </div>
-      ) : !isImageResult ? (
-        <div className="p-3.5 bg-[#fef08a] border-2 border-slate-900 rounded-lg text-xs text-amber-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
-          <span className="text-xl shrink-0 mt-0.5">⚡</span>
-          <div className="flex-1 min-w-0">
-            <strong className="font-heading text-sm text-amber-950 block uppercase tracking-wide">
-              Video Ultra HD 60 FPS Siap Pakai (H.264)
-            </strong>
-            <p className="text-[11px] text-amber-900 leading-snug mt-0.5">
-              Kompresi high bitrate monster aktif dengan Lanczos clarity untuk mencegah video buram / pecah saat diunggah ke WhatsApp Status &amp; Instagram Story.
-            </p>
-            <div className="mt-2 pt-2 border-t border-amber-900/20 text-[11px] text-amber-950">
-              💡 <em>Mau bikin layar HP silau (nits naik otomatis)?</em> Export video di CapCut dengan Codec <strong>H.265 / HEVC</strong>, lalu gunakan preset <strong>⚡ Instan Patch Dolby Vision 8.4 (Layar Silau)</strong>!
-            </div>
-          </div>
-        </div>
-      ) : null}
+      )}
 
-      {/* Action Buttons: Download, WhatsApp Share, Reset */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full min-w-0">
+      {/* Action Buttons: Download, WhatsApp Share, Instagram Share, Reset */}
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-2 w-full min-w-0">
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
             onClick={handleDownload}
-            className="tetris-btn-clip w-full sm:w-auto px-6 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-[#f43f5e] text-white flex items-center justify-center gap-2"
+            className="tetris-btn-clip w-full sm:w-auto px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-[#f43f5e] hover:bg-[#e11d48] text-white flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
             <Download className="w-4 h-4 shrink-0" />
-            <span className="truncate">Download File ({formatBytes(compressedSize)})</span>
+            <span className="truncate">Download ({formatBytes(compressedSize)})</span>
           </button>
         </div>
 
         <div className="tetris-btn-wrap w-full sm:w-auto">
-          <a
-            href="https://api.whatsapp.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              handleDownload();
-            }}
-            className="tetris-btn-clip w-full sm:w-auto px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-[#10b981] text-white flex items-center justify-center gap-2"
-            title="Download dan buka WhatsApp untuk langsung dijadikan Status"
+          <button
+            type="button"
+            onClick={handleShareWhatsApp}
+            className="tetris-btn-clip w-full sm:w-auto px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            title="Download dan buka WhatsApp untuk langsung dijadikan Status / Chat"
           >
             <MessageCircle className="w-4 h-4 shrink-0" />
-            <span className="truncate">Langsung ke Status WA</span>
-          </a>
+            <span className="truncate">Kirim ke WA</span>
+          </button>
+        </div>
+
+        <div className="tetris-btn-wrap w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleShareInstagram}
+            className="tetris-btn-clip w-full sm:w-auto px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-[#a855f7] hover:bg-[#9333ea] text-white flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            title="Download dan buka Instagram untuk Story / Reels"
+          >
+            <Instagram className="w-4 h-4 shrink-0" />
+            <span className="truncate">Kirim ke IG</span>
+          </button>
         </div>
 
         <div className="tetris-btn-wrap w-full sm:w-auto">
           <button
             type="button"
             onClick={onReset}
-            className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs font-black uppercase tracking-wider bg-white text-slate-900 flex items-center justify-center gap-2"
+            className="tetris-btn-clip w-full sm:w-auto px-4 py-3 text-xs font-black uppercase tracking-wider bg-white hover:bg-slate-100 text-slate-900 border-2 border-slate-900 flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-            <span className="truncate">Kompres File Lain</span>
+            <span className="truncate">Kompres Lagi</span>
           </button>
         </div>
       </div>

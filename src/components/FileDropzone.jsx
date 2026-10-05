@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2, Zap } from 'lucide-react';
-import { detectMp4Codec } from '../services/hevcBitstreamPatcher';
+import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function FileDropzone({ selectedFile, fileMetadata, onFileSelected, onClearFile }) {
   const fileInputRef = useRef(null);
@@ -28,33 +27,6 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       return;
     }
 
-    // Helper deteksi codec MP4 yang membaca bagian awal (head) dan akhir (tail) file
-    const inspectFileCodec = async (f) => {
-      try {
-        // 1. Cek 256 KB awal (untuk MP4 faststart / moov di depan)
-        const headLen = Math.min(f.size, 262144);
-        const headBuf = await f.slice(0, headLen).arrayBuffer();
-        let codecInfo = detectMp4Codec(new Uint8Array(headBuf));
-        if (codecInfo.isHevc || codecInfo.tag === 'avc1') {
-          return codecInfo;
-        }
-
-        // 2. Jika belum ketemu (rekaman kamera HP Android/iPhone & CapCut Web meletakkan moov di belakang mdat):
-        // Cek 2 MB terakhir dari file
-        if (f.size > headLen) {
-          const tailLen = Math.min(f.size, 2097152); // 2 MB tail
-          const tailBuf = await f.slice(f.size - tailLen, f.size).arrayBuffer();
-          const tailCodecInfo = detectMp4Codec(new Uint8Array(tailBuf));
-          if (tailCodecInfo.isHevc || tailCodecInfo.tag === 'avc1') {
-            return tailCodecInfo;
-          }
-        }
-        return codecInfo;
-      } catch (_) {
-        return { isHevc: false, codec: 'MP4 Video', tag: 'unknown' };
-      }
-    };
-
     // Inspect metadata
     if (isVideo) {
       const url = URL.createObjectURL(file);
@@ -62,9 +34,7 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       tempVideo.preload = 'metadata';
       tempVideo.src = url;
 
-      tempVideo.onloadedmetadata = async () => {
-        const codecInfo = await inspectFileCodec(file);
-
+      tempVideo.onloadedmetadata = () => {
         const metadata = {
           type: 'video',
           duration: tempVideo.duration || 0,
@@ -75,15 +45,11 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
             : '1.78',
           size: file.size,
           previewUrl: url,
-          isHevc: codecInfo.isHevc,
-          codec: codecInfo.codec
         };
         onFileSelected(file, metadata);
       };
 
-      tempVideo.onerror = async () => {
-        const codecInfo = await inspectFileCodec(file);
-
+      tempVideo.onerror = () => {
         onFileSelected(file, {
           type: 'video',
           duration: 0,
@@ -92,8 +58,6 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
           aspectRatio: '1.78',
           size: file.size,
           previewUrl: url,
-          isHevc: codecInfo.isHevc,
-          codec: codecInfo.codec
         });
       };
     } else {
@@ -245,15 +209,10 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
                       <span className="truncate">Resolusi: <strong className="text-slate-900 font-mono font-black">{fileMetadata.width} × {fileMetadata.height}</strong></span>
                     </>
                   )}
-                  {fileMetadata?.type === 'video' && fileMetadata?.isHevc && (
+                  {fileMetadata?.type === 'video' && (
                     <span className="text-emerald-950 bg-[#a7f3d0] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-emerald-800 fill-emerald-600" />
-                      <span>HEVC / H.265 (4000 Nits EDR Ready)</span>
-                    </span>
-                  )}
-                  {fileMetadata?.type === 'video' && !fileMetadata?.isHevc && fileMetadata?.codec && (
-                    <span className="text-amber-950 bg-[#fed7aa] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1" title="Untuk efek silau EDR maksimal di layar HP, disarankan video diexport dengan format H.265/HEVC (misal dari CapCut/Alight Motion)">
-                      <span>{fileMetadata.codec} (Gunakan H.265 untuk Silau Penuh)</span>
+                      <CheckCircle2 className="w-3 h-3 text-emerald-800" />
+                      <span>Video Siap Kompres Ultra HD</span>
                     </span>
                   )}
                 </div>
@@ -270,42 +229,6 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
               <span>Ganti File</span>
             </button>
           </div>
-
-          {/* Prominent Codec Guidance for Dolby Vision EDR Nits */}
-          {fileMetadata?.type === 'video' && fileMetadata?.isHevc && (
-            <div className="mt-3.5 p-3.5 bg-[#d1fae5] border-2 border-slate-900 rounded-lg text-xs text-emerald-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
-              <div className="p-1.5 rounded bg-emerald-200 border border-slate-900 shrink-0 mt-0.5">
-                <Zap className="w-4 h-4 text-emerald-900 fill-emerald-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="font-heading uppercase tracking-wide block text-emerald-950 text-sm">
-                  ✨ Format HEVC 10-Bit Terdeteksi! Siap Dolby Vision 8.4 Layar Silau
-                </span>
-                <p className="text-[11px] text-emerald-900 mt-0.5 leading-snug">
-                  Video ini siap langsung di-patch ke <strong>Dolby Vision Profile 8.4 (4000 Nits EDR)</strong> dalam 0.1 detik. Layar HP OLED (iPhone &amp; Android) otomatis mendongkrak kecerahan ke tingkat silau maksimal tanpa muka merah bata!
-                </p>
-              </div>
-            </div>
-          )}
-
-          {fileMetadata?.type === 'video' && !fileMetadata?.isHevc && (
-            <div className="mt-3.5 p-3.5 bg-[#fef3c7] border-2 border-slate-900 rounded-lg text-xs text-amber-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
-              <div className="p-1.5 rounded bg-amber-200 border border-slate-900 shrink-0 mt-0.5">
-                <AlertCircle className="w-4 h-4 text-amber-900" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="font-heading uppercase tracking-wide block text-amber-950 text-sm">
-                  💡 Format Video: H.264 (AVC) • Kenapa Layar Belum Silau?
-                </span>
-                <p className="text-[11px] text-amber-900 mt-0.5 leading-snug">
-                  Hardware layar HP (iPhone &amp; Android AMOLED) <strong>hanya memicu peningkatan nits (EDR Layar Silau)</strong> pada format <strong>HEVC / H.265</strong>. Video H.264 ini tetap bisa dikompres Ultra HD 60 FPS untuk WA &amp; IG, tapi tidak bisa memicu nits hardware layar.
-                </p>
-                <div className="mt-2 p-2.5 bg-white/90 rounded-md border border-amber-900/30 text-[11px] text-amber-950">
-                  <strong>👉 Tips 1-Klik di CapCut:</strong> Buka menu Export &gt; Resolusi &gt; Ubah <em>Codec</em> dari <strong>H.264</strong> menjadi <strong>H.265 / HEVC</strong>, lalu masukkan ke sini untuk langsung dapat efek Layar Silau!
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
