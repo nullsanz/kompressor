@@ -177,5 +177,5 @@ kompressor/
 
 Proyek ini dirilis di bawah lisensi [MIT](LICENSE). Bebas digunakan, dimodifikasi, dan didistribusikan untuk keperluan personal maupun komersial.
 
-Dibuat dengan ❤️ oleh **[Lukman Hakim (nullsanz)](https://github.com/nullsanz)** • 2026 Edition  
+Dibuat dengan ❤️ oleh **[Lukmanul Hakim (nullsanz)](https://github.com/nullsanz)** • 2026 Edition  
 Bagian dari ekosistem **[anull.cloud](https://anull.cloud)**
