@@ -1,7 +1,25 @@
 {
-  "name": "kompressor",
-  "private": true,
-  "version": "1.0.0",
+  "name": "anull-kompresor-hd",
+  "version": "1.2.0",
+  "description": "Studio Web Kompresor Video & Foto HD berbasis FFmpeg WebAssembly (WASM). 100% Client-Side, bypass kompresi WhatsApp, Instagram & TikTok.",
+  "author": "Lukman Hakim (nullsanz)",
+  "license": "MIT",
+  "homepage": "https://kompres.anull.cloud",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullsanz/kompressor.git"
+  },
+  "keywords": [
+    "ffmpeg",
+    "webassembly",
+    "video-compressor",
+    "whatsapp-status",
+    "instagram-story",
+    "tiktok-hd",
+    "client-side",
+    "react",
+    "vite"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
