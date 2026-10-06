@@ -11,7 +11,9 @@ import {
   Sparkles,
   Sliders,
   ArrowRight,
-  FolderPlus
+  FolderPlus,
+  Forward,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -26,6 +28,7 @@ export default function ResultComparison({
   onOpenTikTokGuide
 }) {
   const [activeTab, setActiveTab] = useState('result'); // 'result' | 'original'
+  const [showWAGuideModal, setShowWAGuideModal] = useState(false);
 
   useEffect(() => {
     // Fire celebratory confetti on mount
@@ -61,7 +64,13 @@ export default function ResultComparison({
     document.body.removeChild(a);
   };
 
-  const handleShareWhatsApp = async () => {
+  const handleShareWhatsApp = () => {
+    // Tampilkan panduan trik rahasia forward bypass terlebih dahulu agar tidak kena re-encode di WhatsApp
+    setShowWAGuideModal(true);
+  };
+
+  const handleExecuteShareWhatsApp = async () => {
+    setShowWAGuideModal(false);
     // 1. Download file otomatis ke perangkat
     handleDownload();
 
@@ -76,8 +85,8 @@ export default function ResultComparison({
         if (navigator.canShare({ files: [fileToShare] })) {
           await navigator.share({
             files: [fileToShare],
-            title: 'Kirim ke WhatsApp',
-            text: 'Video HD siap untuk Status WhatsApp!'
+            title: 'Kirim ke WhatsApp (Pilih Chat Sendiri)',
+            text: '💡 Kirim ke Chat Sendiri, lalu klik Teruskan (Forward ➡️) ke Status Saya agar bebas kompresi editing!'
           });
           return;
         }
@@ -87,9 +96,7 @@ export default function ResultComparison({
       }
     }
 
-    // 3. Fallback aman tanpa broken parameter
-    alert('✅ File sudah otomatis terunduh ke Galeri / Download HP Anda!\n\nLangkah pasang Status WhatsApp HD:\n1. Buka aplikasi WhatsApp\n2. Masuk ke tab Pembaruan / Status\n3. Buat status baru dan pilih video yang baru didownload.');
-
+    // 3. Fallback jika browser desktop atau tanpa Web Share API
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
       window.location.href = 'whatsapp://';
@@ -447,6 +454,93 @@ export default function ResultComparison({
         </div>
 
       </div>
+
+      {/* WhatsApp Status Forward Bypass Guide Modal */}
+      {showWAGuideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md bg-white border-3 border-slate-900 rounded-2xl p-5 shadow-[6px_6px_0px_0px_#111827] max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b-2 border-slate-900">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 border-2 border-slate-900 flex items-center justify-center text-emerald-800">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Trik Status WA 1080p</h3>
+                  <p className="text-[11px] font-bold text-emerald-700">Bypass Kompresi Halaman Editing</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWAGuideModal(false)}
+                className="p-1 rounded-lg border-2 border-slate-900 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="py-4 space-y-3">
+              <div className="p-3 bg-amber-50 border-2 border-amber-300 rounded-xl text-xs text-amber-900 font-medium">
+                <p className="font-black text-amber-950 flex items-center gap-1.5 mb-1">
+                  ⚠️ JANGAN LANGSUNG PILIH "STATUS SAYA"!
+                </p>
+                Jika langsung pilih Status Saya di daftar WhatsApp, WA akan membuka halaman editing preview dan mengompres ulang video lu jadi buram.
+              </div>
+
+              <div className="space-y-2.5">
+                <p className="text-xs font-black uppercase text-slate-700">Langkah Rahasia (Anti-Pecah 100%):</p>
+                
+                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">1</span>
+                  <div className="text-xs text-slate-800">
+                    <strong className="block text-slate-900 font-black">Kirim ke Chat Sendiri</strong>
+                    Saat daftar WhatsApp terbuka, pilih <strong>Chat Nomor Sendiri</strong> (Pesan ke diri sendiri / <em>You</em>) atau chat teman/grup.
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
+                  <div className="text-xs text-slate-800">
+                    <strong className="block text-slate-900 font-black">Tekan Tombol "Teruskan" (Forward)</strong>
+                    Buka ruang chat tersebut, lalu klik icon tanda panah <strong>Teruskan (➡️)</strong> pada video yang baru dikirim.
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">3</span>
+                  <div className="text-xs text-slate-800">
+                    <strong className="block text-slate-900 font-black">Pilih "Status Saya"</strong>
+                    Centang <strong>Status Saya</strong> lalu kirim. Halaman editing dilewati 100% dan video terbit jernih murni tanpa re-encode!
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-2 border-t-2 border-slate-900 flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleExecuteShareWhatsApp}
+                className="flex-1 py-3 px-4 bg-emerald-500 hover:bg-emerald-600 border-2 border-slate-900 rounded-xl text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#111827] flex items-center justify-center gap-2 cursor-pointer transition-transform active:translate-x-0.5 active:translate-y-0.5"
+              >
+                <Forward className="w-4 h-4" />
+                <span>Buka WhatsApp Sekarang</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWAGuideModal(false);
+                  handleDownload();
+                }}
+                className="py-3 px-4 bg-white hover:bg-slate-100 border-2 border-slate-900 rounded-xl text-slate-800 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#111827] cursor-pointer"
+              >
+                Download Saja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
