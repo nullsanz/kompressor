@@ -52,6 +52,13 @@ export default function ProgressCard({
 
   // Determine stage description
   const getStageInfo = () => {
+    const isPatch = liveStats?.fps === 'COPY' || liveStats?.fps === 'NATIVE' || liveStats?.speed === 'INSTANT' || liveStats?.speed === '0-LOSS';
+    if (isPatch) {
+      if (percent < 100) {
+        return { step: 'Instant Patch', label: 'Patching Struktur Container MP4/HEVC (0% Loss)', color: 'text-purple-700 bg-purple-50' };
+      }
+      return { step: 'Selesai', label: 'Video Siap Diunduh!', color: 'text-emerald-700 bg-emerald-50' };
+    }
     if (percent < 10) {
       return { step: 'Tahap 1 / 3', label: 'Persiapan Memori Virtual WASM', color: 'text-amber-700 bg-amber-50' };
     } else if (percent < 95) {

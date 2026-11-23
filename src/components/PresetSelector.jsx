@@ -17,6 +17,7 @@ export default function PresetSelector({
   selectedPresetId, 
   onSelectPreset,
   isImageFile = false,
+  mp4Info = null,
   onOpenTikTokGuide
 }) {
   const getIcon = (name) => {
@@ -53,6 +54,16 @@ export default function PresetSelector({
         </div>
         <span className="text-xs font-black uppercase text-slate-500">100% Identik Bot WA</span>
       </div>
+
+      {!isImageFile && mp4Info?.isHevc && (
+        <div className="p-3 rounded-xl border-2 border-slate-900 bg-[#f3e8ff] text-xs font-bold text-purple-950 shadow-[2px_2px_0px_0px_#111827] flex items-start gap-2.5">
+          <Zap className="w-4 h-4 text-purple-700 shrink-0 mt-0.5 fill-purple-300" />
+          <p className="leading-snug">
+            <strong>Video H.265 / HEVC ({mp4Info.videoCodecTag}) Terdeteksi!</strong> Gunakan{' '}
+            <strong className="underline">Story IG Instant Patch</strong> di bawah agar selesai dalam <strong>&lt; 1 detik</strong> tanpa re-encode, size tetap utuh (~0% bengkak), dan 0% pecah.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {PRESETS.map((preset) => {

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, Film, Image as ImageIcon, X, FileVideo, AlertCircle, CheckCircle2, Zap } from 'lucide-react';
+import { inspectMp4File } from '../services/instantPatchEngine';
 
 export default function FileDropzone({ selectedFile, fileMetadata, onFileSelected, onClearFile }) {
   const fileInputRef = useRef(null);
@@ -33,11 +34,13 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
       const tempVideo = document.createElement('video');
       tempVideo.preload = 'metadata';
       tempVideo.src = url;
+      const mp4ProbePromise = inspectMp4File(file).catch(() => null);
 
-      tempVideo.onloadedmetadata = () => {
+      tempVideo.onloadedmetadata = async () => {
+        const mp4Info = await mp4ProbePromise;
         const metadata = {
           type: 'video',
-          duration: tempVideo.duration || 0,
+          duration: tempVideo.duration || mp4Info?.durationSec || 0,
           width: tempVideo.videoWidth || 0,
           height: tempVideo.videoHeight || 0,
           aspectRatio: tempVideo.videoWidth && tempVideo.videoHeight 
@@ -45,19 +48,22 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
             : '1.78',
           size: file.size,
           previewUrl: url,
+          mp4Info
         };
         onFileSelected(file, metadata);
       };
 
-      tempVideo.onerror = () => {
+      tempVideo.onerror = async () => {
+        const mp4Info = await mp4ProbePromise;
         onFileSelected(file, {
           type: 'video',
-          duration: 0,
+          duration: mp4Info?.durationSec || 0,
           width: 0,
           height: 0,
           aspectRatio: '1.78',
           size: file.size,
           previewUrl: url,
+          mp4Info
         });
       };
     } else {
@@ -209,10 +215,24 @@ export default function FileDropzone({ selectedFile, fileMetadata, onFileSelecte
                       <span className="truncate">Resolusi: <strong className="text-slate-900 font-mono font-black">{fileMetadata.width} × {fileMetadata.height}</strong></span>
                     </>
                   )}
+                  {fileMetadata?.mp4Info?.videoCodecTag && (
+                    <span className={`px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1 ${
+                      fileMetadata.mp4Info.isHevc
+                        ? 'bg-[#f3e8ff] text-purple-950'
+                        : 'bg-[#dbeafe] text-blue-950'
+                    }`}>
+                      <Zap className="w-3 h-3 shrink-0" />
+                      <span>
+                        {fileMetadata.mp4Info.isHevc ? `H.265/HEVC (${fileMetadata.mp4Info.videoCodecTag})` : `H.264 (${fileMetadata.mp4Info.videoCodecTag})`}
+                        {fileMetadata.mp4Info.fps > 0 ? ` • ${Math.round(fileMetadata.mp4Info.fps)}fps` : ''}
+                        {fileMetadata.mp4Info.avgBitrateMbps > 0 ? ` • ${fileMetadata.mp4Info.avgBitrateMbps}M` : ''}
+                      </span>
+                    </span>
+                  )}
                   {fileMetadata?.type === 'video' && (
                     <span className="text-emerald-950 bg-[#a7f3d0] px-2 py-0.5 rounded-md border-2 border-slate-900 font-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#111827] flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-800" />
-                      <span>Video Siap Kompres Ultra HD</span>
+                      <span>{fileMetadata?.mp4Info?.isHevc ? 'Siap Instant Patch (0.5s)' : 'Video Siap Proses'}</span>
                     </span>
                   )}
                 </div>

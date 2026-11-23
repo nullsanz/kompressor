@@ -143,9 +143,11 @@ export default function ResultComparison({
 
   // Quick preset shortcuts list for the same footage
   const PRESET_SHORTCUTS = [
+    { id: 'ig_instant_patch', label: 'Instant Patch IG (0.5s)', icon: <Sparkles className="w-3.5 h-3.5 text-purple-700 shrink-0" /> },
+    { id: 'ig_hdr_silau_patch', label: 'HDR Silau DV Patch', icon: <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" /> },
     { id: 'khususwa', label: 'Status WA 1080p', icon: <MessageCircle className="w-3.5 h-3.5 text-emerald-700 shrink-0" /> },
     { id: 'hdrwa', label: 'WA Kinclong (Luminescence)', icon: <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" /> },
-    { id: 'khususig30k', label: 'Story IG 30k 60FPS', icon: <Instagram className="w-3.5 h-3.5 text-purple-700 shrink-0" /> },
+    { id: 'khususig30k', label: 'Story IG Re-Encode 1080p', icon: <Instagram className="w-3.5 h-3.5 text-purple-700 shrink-0" /> },
     { id: 'tiktok', label: 'TikTok 9:16 Anti-Blur', icon: <Music2 className="w-3.5 h-3.5 text-rose-700 shrink-0" /> },
     { id: '720p', label: 'Hemat Kuota 720p', icon: <Film className="w-3.5 h-3.5 text-blue-700 shrink-0" /> },
     { id: 'pphd', label: 'Foto Profil 1:1', icon: <CheckCircle2 className="w-3.5 h-3.5 text-cyan-700 shrink-0" /> },
@@ -178,7 +180,7 @@ export default function ResultComparison({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-heading text-xl sm:text-2xl text-slate-900 truncate uppercase tracking-wide">
-              Kompresi Selesai dengan Sempurna!
+              {result?.isInstantPatch ? 'Instant Patch Selesai Tanpa Pecah!' : 'Kompresi Selesai dengan Sempurna!'}
             </h3>
             <p className="text-xs font-bold text-slate-500 truncate">
               Preset Aktif: <strong className="text-slate-900 font-black">{preset?.name || 'Kustom'}</strong>
@@ -186,8 +188,16 @@ export default function ResultComparison({
           </div>
         </div>
 
-        {/* Savings Badge */}
-        {savedPercent > 0 && (
+        {/* Savings / Zero-Loss Badge */}
+        {result?.isInstantPatch ? (
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-[#f3e8ff] border-2 border-slate-900 text-purple-950 rounded-lg shadow-[2px_2px_0px_0px_#111827] shrink-0">
+            <Sparkles className="w-5 h-5 stroke-[2.5] text-purple-700" />
+            <div className="text-left">
+              <span className="text-[10px] uppercase tracking-wider font-black block text-purple-900">Zero Re-Encode</span>
+              <span className="text-sm sm:text-base font-black font-mono text-purple-950">0% Quality Loss</span>
+            </div>
+          </div>
+        ) : savedPercent > 0 ? (
           <div className="flex items-center gap-2 px-3.5 py-2 bg-[#d0fae5] border-2 border-slate-900 text-emerald-950 rounded-lg shadow-[2px_2px_0px_0px_#111827] shrink-0">
             <TrendingDown className="w-5 h-5 stroke-[2.5] text-emerald-700" />
             <div className="text-left">
@@ -195,7 +205,15 @@ export default function ResultComparison({
               <span className="text-sm sm:text-base font-black font-mono text-emerald-950">-{savedPercent}% Lebih Ringan</span>
             </div>
           </div>
-        )}
+        ) : compressedSize > originalSize ? (
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-[#fef08a] border-2 border-slate-900 text-amber-950 rounded-lg shadow-[2px_2px_0px_0px_#111827] shrink-0">
+            <Sparkles className="w-5 h-5 stroke-[2.5] text-amber-700" />
+            <div className="text-left">
+              <span className="text-[10px] uppercase tracking-wider font-black block text-amber-900">Tip Hemat Size</span>
+              <span className="text-xs sm:text-sm font-black font-mono text-amber-950">Coba Instant Patch</span>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* File Details Bar */}
@@ -296,6 +314,28 @@ export default function ResultComparison({
               </div>
               <p className="text-[11px] text-rose-900 leading-snug">
                 <strong>ATURAN MUTLAK:</strong> JANGAN upload lewat aplikasi TikTok HP biasa karena server TikTok otomatis mengompres paksa jadi 720p 30fps! Gunakan browser <strong>Quetta, Lemur, atau Kiwi</strong> dengan ekstensi <strong>Nullsanz TikTok Studio</strong> aktif di Mode Desktop.
+              </p>
+            </div>
+          </div>
+        ) : result?.isInstantPatch ? (
+          <div className="p-3.5 bg-[#f3e8ff] border-2 border-slate-900 rounded-xl text-xs text-purple-950 font-bold flex items-start gap-3 shadow-[2px_2px_0px_0px_#111827]">
+            <span className="text-xl shrink-0 mt-0.5">⚡</span>
+            <div className="flex-1 min-w-0">
+              <strong className="font-heading text-sm text-purple-950 block uppercase tracking-wide">
+                {result?.isDolbyVision
+                  ? 'Dolby Vision 8.4 HLG Patch Sukses (Zero Re-Encode)!'
+                  : 'Instant Container Patch Sukses (0% Pecah • Bitstream Asli Utuh)!'}
+              </strong>
+              <p className="text-[11px] text-purple-900 leading-snug mt-0.5">
+                {result?.patchReport ? (
+                  <>
+                    Codec: <strong>{result.patchReport.videoCodec}</strong> ({result.patchReport.videoCodecTagBefore} → {result.patchReport.videoCodecTagAfter}) •{' '}
+                    FastStart <strong>moov depan</strong> • Bitstream video identik 100% tanpa dikompres ulang.
+                    {result.patchReport.elapsedMs ? ` Selesai dalam ${result.patchReport.elapsedMs} ms.` : ''}
+                  </>
+                ) : (
+                  'Struktur container MP4 (hvc1 + FastStart) telah dioptimalkan tanpa menurunkan kualitas piksel.'
+                )}
               </p>
             </div>
           </div>

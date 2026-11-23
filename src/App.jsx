@@ -18,7 +18,7 @@ import TikTokGuideModal from './components/TikTokGuideModal';
 import Footer from './components/Footer';
 
 import { PRESETS, getPresetById } from './constants/presets';
-import { getFFmpegInstance, processVideo, processPPHD } from './services/ffmpegEngine';
+import { getFFmpegInstance, processVideo, processInstantPatch, processPPHD } from './services/ffmpegEngine';
 import { requestScreenWakeLock, releaseScreenWakeLock, subscribeWakeLock } from './services/wakeLockService';
 
 export default function App() {
@@ -90,15 +90,21 @@ export default function App() {
     setError(null);
     setResult(null);
 
-    // Default trim range
-    if (metadata.type === 'video' && metadata.duration > 0) {
-      const defaultEnd = Math.min(metadata.duration, 60);
-      setTrimRange({
-        start: 0,
-        end: defaultEnd,
-        duration: metadata.duration
-      });
-      setSelectedPresetId('khususwa');
+    // Default trim range & smart preset recommendation
+    if (metadata.type === 'video') {
+      if (metadata.duration > 0) {
+        const defaultEnd = Math.min(metadata.duration, 60);
+        setTrimRange({
+          start: 0,
+          end: defaultEnd,
+          duration: metadata.duration
+        });
+      }
+      if (metadata.mp4Info?.isHevc) {
+        setSelectedPresetId('ig_instant_patch');
+      } else {
+        setSelectedPresetId('khususwa');
+      }
     } else {
       setSelectedPresetId('pphd');
     }
@@ -179,6 +185,31 @@ export default function App() {
           onProgress: ({ ratio, progress, text }) => {
             const p = typeof ratio === 'number' ? ratio : (typeof progress === 'number' ? progress : 0);
             setProgress(p);
+            if (text) setStatusText(text);
+          },
+          onLog: (msg) => {
+            appendLog(msg);
+          }
+        });
+      } else if (activePreset.mode === 'instant-patch' || activePreset.mode === 'dovi-patch') {
+        // Instant MP4 / HEVC Container & Dolby Vision Patch (Zero Re-Encode)
+        setStatusText(
+          activePreset.mode === 'dovi-patch'
+            ? 'Menyuntikkan Dolby Vision 8.4 HLG tanpa re-encode...'
+            : 'Menjalankan Instant Patch Container HEVC (0% Loss)...'
+        );
+        res = await processInstantPatch({
+          file: selectedFile,
+          preset: activePreset,
+          trimRange,
+          totalDuration: fileMetadata?.duration || 0,
+          onProgress: ({ ratio, text, fps, speed }) => {
+            if (typeof ratio === 'number' && ratio >= 0 && ratio <= 1) {
+              setProgress(ratio);
+            }
+            if (fps || speed) {
+              setLiveStats({ fps: fps || '', speed: speed || '' });
+            }
             if (text) setStatusText(text);
           },
           onLog: (msg) => {
@@ -368,6 +399,7 @@ export default function App() {
                 selectedPresetId={selectedPresetId}
                 onSelectPreset={setSelectedPresetId}
                 isImageFile={fileMetadata?.type === 'image'}
+                mp4Info={fileMetadata?.mp4Info || null}
                 onOpenTikTokGuide={() => setShowTikTokGuide(true)}
               />
 

@@ -345,20 +345,61 @@ function concatUint8Arrays(arrays) {
  */
 export function detectMp4Codec(inputData) {
   const u8 = inputData instanceof Uint8Array ? inputData : new Uint8Array(inputData);
-  
-  // 1. Scan hvc1 atau hev1 di seluruh buffer (tanpa batas 128KB yang memotong moov di belakang)
-  if (findFourCC(u8, 'hvc1', 0, u8.length) !== -1 || findFourCC(u8, 'hev1', 0, u8.length) !== -1) {
-    return { isHevc: true, codec: 'H.265 / HEVC', tag: 'hvc1' };
+  const view = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+
+  // Telusuri box top-level dengan aman (skip mdat agar tidak terkena byte acak)
+  let topCursor = 0;
+  let moovStart = -1;
+  let moovEnd = -1;
+  while (topCursor + 8 <= u8.byteLength) {
+    let boxSize = view.getUint32(topCursor, false);
+    const boxType = String.fromCharCode(u8[topCursor + 4], u8[topCursor + 5], u8[topCursor + 6], u8[topCursor + 7]);
+    let hdrSize = 8;
+    if (boxSize === 1) {
+      if (topCursor + 16 > u8.byteLength) break;
+      boxSize = Number(view.getBigUint64(topCursor + 8, false));
+      hdrSize = 16;
+    } else if (boxSize === 0) {
+      boxSize = u8.byteLength - topCursor;
+    }
+    if (boxSize < hdrSize || topCursor + boxSize > u8.byteLength) break;
+    if (boxType === 'moov') {
+      moovStart = topCursor + hdrSize;
+      moovEnd = topCursor + boxSize;
+      break;
+    }
+    topCursor += boxSize;
   }
-  // 2. Scan avc1 atau avc3 di seluruh buffer
-  if (findFourCC(u8, 'avc1', 0, u8.length) !== -1 || findFourCC(u8, 'avc3', 0, u8.length) !== -1) {
-    return { isHevc: false, codec: 'H.264 / AVC', tag: 'avc1' };
+
+  if (moovStart !== -1) {
+    let cursor = moovStart;
+    while (cursor + 8 <= moovEnd) {
+      const boxSize = view.getUint32(cursor, false);
+      if (boxSize < 8 || cursor + boxSize > moovEnd) break;
+      const boxType = String.fromCharCode(u8[cursor + 4], u8[cursor + 5], u8[cursor + 6], u8[cursor + 7]);
+      if (boxType === 'trak') {
+        const hdlrPos = findFourCC(u8, 'hdlr', cursor + 8, cursor + boxSize);
+        const handler = hdlrPos !== -1 && hdlrPos + 16 <= cursor + boxSize
+          ? String.fromCharCode(u8[hdlrPos + 12], u8[hdlrPos + 13], u8[hdlrPos + 14], u8[hdlrPos + 15])
+          : '';
+        if (handler === 'vide') {
+          const stsdPos = findFourCC(u8, 'stsd', cursor + 8, cursor + boxSize);
+          if (stsdPos !== -1 && stsdPos + 20 <= cursor + boxSize) {
+            const sampleTag = String.fromCharCode(u8[stsdPos + 16], u8[stsdPos + 17], u8[stsdPos + 18], u8[stsdPos + 19]);
+            if (sampleTag === 'hvc1' || sampleTag === 'hev1') {
+              return { isHevc: true, codec: 'H.265 / HEVC', tag: sampleTag };
+            }
+            if (sampleTag === 'avc1' || sampleTag === 'avc3') {
+              return { isHevc: false, codec: 'H.264 / AVC', tag: sampleTag };
+            }
+            return { isHevc: false, codec: sampleTag || 'Unknown', tag: sampleTag || 'unknown' };
+          }
+        }
+      }
+      cursor += boxSize;
+    }
   }
-  // 3. Cek ftyp brand di 64 byte awal
-  const ftypLimit = Math.min(u8.length, 64);
-  if (findFourCC(u8, 'hvc1', 0, ftypLimit) !== -1 || findFourCC(u8, 'hev1', 0, ftypLimit) !== -1) {
-    return { isHevc: true, codec: 'H.265 / HEVC', tag: 'hvc1' };
-  }
+
   return { isHevc: false, codec: 'Unknown / Non-HEVC', tag: 'unknown' };
 }
 

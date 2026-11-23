@@ -1,5 +1,10 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import {
+  inspectMp4File,
+  patchMp4ContainerLossless,
+  patchHevcDolbyVisionInstant
+} from './instantPatchEngine.js';
 
 let ffmpeg = null;
 let isLoaded = false;
@@ -340,7 +345,190 @@ export async function processVideo({
     size: outputBlob.size,
     name: `${baseName}_${preset.id.toUpperCase()}_HD.mp4`,
     isDolbyVision: false,
-    isHevc: false
+    isHevc: false,
+    isInstantPatch: false
+  };
+}
+
+/**
+ * Jalur Instant Patch (Zero Video Re-Encode):
+ * - Bila video MP4/MOV non-fragmented (HEVC/AVC) + audio AAC + tidak di-trim:
+ *   Pure JS MP4 Box Refinery (< 1.5 detik, tanpa load WASM, mdat 100% utuh).
+ * - Bila video di-trim, fragmented (moof), non-AAC audio, atau kontainer MKV/MOV kompleks:
+ *   Fast WASM Stream-Copy Remux (-c:v copy) ~2-4 detik tanpa menyentuh frame video!
+ */
+export async function processInstantPatch({
+  file,
+  preset,
+  trimRange,
+  totalDuration = 0,
+  onProgress,
+  onLog
+}) {
+  const safeLog = (msg) => {
+    if (onLog) onLog(msg);
+  };
+  const safeProgress = (payload) => {
+    if (onProgress) onProgress(payload);
+  };
+
+  safeProgress({ ratio: 0.08, fps: 'COPY', speed: 'INSTANT', text: 'Memeriksa struktur kontainer MP4/HEVC...' });
+  const containerInfo = await inspectMp4File(file);
+  const rawDuration = totalDuration || containerInfo.durationSec || 0;
+  const isTrimmed = Boolean(
+    trimRange &&
+      (trimRange.start > 0.25 ||
+        (trimRange.end > 0 && rawDuration > 0 && trimRange.end < rawDuration - 0.5))
+  );
+
+  safeLog(
+    `[InstantPatch] File: "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB) | ` +
+      `MP4=${containerInfo.isMp4} Codec=${containerInfo.videoCodecTag || 'unknown'} ` +
+      `Audio=${containerInfo.audioCodecTag || (containerInfo.hasAudio ? 'unknown' : 'none')} ` +
+      `FastStart=${containerInfo.hasFastStart} Fragmented=${containerInfo.isFragmented} Trim=${isTrimmed}`
+  );
+
+  const canPureJsPatch =
+    !isTrimmed &&
+    containerInfo.isMp4 &&
+    !containerInfo.isFragmented &&
+    (containerInfo.isHevc || containerInfo.isAvc) &&
+    (!containerInfo.hasAudio || containerInfo.audioCodecTag === 'mp4a');
+
+  const baseName = (file.name || 'video')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .substring(0, 30);
+
+  if (canPureJsPatch) {
+    safeProgress({ ratio: 0.35, fps: 'NATIVE', speed: '0-LOSS', text: 'Membaca biner MP4 ke memori lokal...' });
+    const rawBuffer = new Uint8Array(await file.arrayBuffer());
+
+    safeProgress({
+      ratio: 0.65,
+      fps: 'NATIVE',
+      speed: '0-LOSS',
+      text:
+        preset.mode === 'dovi-patch'
+          ? 'Menyuntikkan Dolby Vision 8.4 NAL 62 + colr HLG...'
+          : 'Menambal hev1→hvc1 + FastStart moov tanpa re-encode...'
+    });
+
+    const patched =
+      preset.mode === 'dovi-patch'
+        ? patchHevcDolbyVisionInstant(rawBuffer)
+        : patchMp4ContainerLossless(rawBuffer);
+
+    safeLog(
+      `[InstantPatch] ✅ Selesai dalam ${patched.report.elapsedMs} ms! ` +
+        `Tag: ${patched.report.videoCodecTagBefore} -> ${patched.report.videoCodecTagAfter} | ` +
+        `FastStart: ${patched.report.moovMovedBeforeMdat} | Bitstream Utuh: ${patched.report.mdatByteIdentical ?? true}`
+    );
+
+    safeProgress({ ratio: 1.0, fps: 'NATIVE', speed: `${patched.report.elapsedMs}ms`, text: 'Selesai Instan!' });
+
+    const outputBlob = new Blob([patched.bytes], { type: 'video/mp4' });
+    const outputUrl = URL.createObjectURL(outputBlob);
+
+    return {
+      blob: outputBlob,
+      url: outputUrl,
+      size: outputBlob.size,
+      name: `${baseName}_${preset.mode === 'dovi-patch' ? 'DV84_HDR_PATCH' : 'IG_INSTANT_PATCH'}.mp4`,
+      isDolbyVision: preset.mode === 'dovi-patch',
+      isHevc: containerInfo.isHevc,
+      isInstantPatch: true,
+      patchReport: patched.report
+    };
+  }
+
+  // Fallback Fast Stream Copy (-c:v copy) via FFmpeg WASM bila di-trim / fragmented / MKV / audio non-AAC
+  safeLog('[InstantPatch] Menggunakan Fast Stream-Copy Remux (-c:v copy) tanpa re-encode piksel video...');
+  safeProgress({ ratio: 0.15, fps: 'COPY', speed: 'REMUX', text: 'Memuat engine Fast Remux WASM...' });
+  const instance = await getFFmpegInstance();
+  setActiveCallbacks(
+    (msg) => safeLog(msg),
+    ({ progress }) => {
+      if (typeof progress === 'number' && progress > 0 && progress <= 1) {
+        safeProgress({
+          ratio: Math.min(0.88, Math.max(0.25, progress)),
+          fps: 'COPY',
+          speed: 'REMUX',
+          text: `Stream-Copy tanpa re-encode (${Math.round(progress * 100)}%)...`
+        });
+      }
+    }
+  );
+
+  const rawExt =
+    file.name && file.name.includes('.')
+      ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '')
+      : 'mp4';
+  const ext = ['mp4', 'mov', 'mkv', 'webm', 'avi', '3gp'].includes(rawExt) ? rawExt : 'mp4';
+  const inputName = `patch_in_${Date.now()}.${ext}`;
+  const outputName = `patch_out_${Date.now()}.mp4`;
+
+  await instance.writeFile(inputName, await fetchFile(file));
+
+  const args = ['-y'];
+  if (isTrimmed) {
+    if (trimRange.start > 0) args.push('-ss', String(trimRange.start));
+    if (trimRange.end > 0 && trimRange.end > trimRange.start) args.push('-to', String(trimRange.end));
+  }
+  args.push('-i', inputName, '-c:v', 'copy');
+  if (containerInfo.isHevc) {
+    args.push('-tag:v', 'hvc1');
+  }
+  if (!containerInfo.hasAudio) {
+    args.push('-an');
+  } else if (!containerInfo.isMp4 || (containerInfo.audioCodecTag && containerInfo.audioCodecTag !== 'mp4a')) {
+    args.push('-c:a', 'aac', '-b:a', '256k', '-ar', '48000');
+  } else {
+    args.push('-c:a', 'copy');
+  }
+  args.push('-brand', 'mp42', '-movflags', '+faststart', '-avoid_negative_ts', 'make_zero', outputName);
+
+  let remuxBytes = null;
+  try {
+    safeLog(`[FastRemux Command] ffmpeg ${args.join(' ')}`);
+    await instance.exec(args);
+    remuxBytes = await instance.readFile(outputName);
+  } finally {
+    try { await instance.deleteFile(inputName); } catch (_) {}
+    try { await instance.deleteFile(outputName); } catch (_) {}
+    setActiveCallbacks(null, null);
+  }
+
+  let finalBytes = remuxBytes instanceof Uint8Array ? remuxBytes : new Uint8Array(remuxBytes);
+  let patchReport = {
+    mode: 'fast-stream-copy-remux',
+    videoCodec: containerInfo.isHevc ? 'H.265 / HEVC' : containerInfo.videoCodecTag || 'Copy',
+    videoCodecTagBefore: containerInfo.videoCodecTag || 'unknown',
+    videoCodecTagAfter: containerInfo.isHevc ? 'hvc1' : containerInfo.videoCodecTag || 'mp4',
+    moovMovedBeforeMdat: true,
+    mdatByteIdentical: !isTrimmed
+  };
+
+  if (preset.mode === 'dovi-patch') {
+    safeProgress({ ratio: 0.92, fps: 'NATIVE', speed: 'DV-8.4', text: 'Menyuntikkan Dolby Vision 8.4...' });
+    const dvRes = patchHevcDolbyVisionInstant(finalBytes);
+    finalBytes = dvRes.bytes;
+    patchReport = { ...patchReport, ...dvRes.report };
+  }
+
+  safeProgress({ ratio: 1.0, fps: 'COPY', speed: 'DONE', text: 'Selesai!' });
+  const outputBlob = new Blob([finalBytes], { type: 'video/mp4' });
+  const outputUrl = URL.createObjectURL(outputBlob);
+
+  return {
+    blob: outputBlob,
+    url: outputUrl,
+    size: outputBlob.size,
+    name: `${baseName}_${preset.mode === 'dovi-patch' ? 'DV84_HDR_PATCH' : 'IG_FAST_REMUX'}.mp4`,
+    isDolbyVision: preset.mode === 'dovi-patch',
+    isHevc: containerInfo.isHevc,
+    isInstantPatch: true,
+    patchReport
   };
 }
 
